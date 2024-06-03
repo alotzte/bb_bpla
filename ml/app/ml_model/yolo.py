@@ -5,13 +5,20 @@ class YoloModel:
     def __init__(self, model_path):
         self.model = YOLOv10(model_path)
 
-    def predict(self, img):
-        res = self.model.predict(img, conf=0.5)
+    def predict_photo(self, img):
+        width, height = img.size
+        res = self.model.predict(img, conf=0.5, imgsz=(height, width))  # TODO augment
         try:
             return int(res[0].boxes.cls.to("cpu").tolist()[0]), res[0].boxes.xywh.to("cpu").tolist()[0]
         except:
             return None, None
 
+    # def predict_video(self, video):
+    #     res = self.model.predict(video, conf=0.5)
+    #     try:
+    #         return int(res[0].boxes.cls.to("cpu").tolist()[0]), res[0].boxes.xywh.to("cpu").tolist()[0]
+    #     except:
+    #         return None, None
 
     # def predict(
     #     self,
