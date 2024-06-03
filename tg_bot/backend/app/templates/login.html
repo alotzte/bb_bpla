@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Redirect Example</title>
+  <script>
+    window.env = {
+        BACKEND_URL: "{{ backend_url }}",
+        BACKEND_PORT: "{{ backend_port }}"
+    };
+  </script>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <h1>Войти</h1>
+  <div id="wrapper">
+    <form id="signin" method="" action="" autocomplete="off">
+      <input type="text" id="user" name="user" placeholder="логин" />
+      <input type="password" id="pass" name="pass" placeholder="пароль" />
+      <button id="redirectButton" type="submit">&#xf0da;</button> 
+      <p>Забыли пароль? <a href="#">Востановить</a></p>
+    </form>
+  </div>
+
+  <script>
+
+    function redirectTo(url) {
+      window.location.href = url;
+    }
+
+    const button = document.getElementById('redirectButton');
+    button.addEventListener('click', function(event) {
+      event.preventDefault();
+
+      const backendUrl = window.env.BACKEND_URL;
+      const backendPort = window.env.BACKEND_PORT;
+      const url = `${backendUrl}:${backendPort}/notification-settings`;
+
+      redirectTo(url);
+    });
+  </script>
+</body>
+</html>

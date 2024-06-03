@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkboxes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css');
+
+        * {
+            font-family: 'Open Sans', 'sans-serif', 'FontAwesome';
+        }
+
+        body {
+            background: rgb(52, 56, 61);
+            color: rgb(255, 255, 255);
+            padding: 20px;
+        }
+
+        h2 {
+            color: rgb(255, 255, 255);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #checkbox-container {
+            margin-top: 20px;
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #checkboxes {
+            background: rgb(28, 30, 33);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: rgb(255, 255, 255);
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Медиа-запрос для мобильных устройств */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            #theme-button {
+                position: fixed;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Стили для темной темы */
+        body.dark-theme {
+            background-color: #333333;
+            color: #FFFFFF;
+        }
+
+        /* Кнопка для смены темы */
+        #theme-button {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #theme-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Стили для всплывающего уведомления */
+        .notification {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            font-size: 16px;
+        }
+
+        .notification.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Выберите классы для уведомления</h2>
+
+    <div id="checkbox-container">
+        <div id="checkboxes"></div>
+        <button id="apply-button">Применить</button>
+    </div>
+
+    <!-- Кнопка для смены темы -->
+    <!-- <button id="theme-button">Сменить тему</button> -->
+
+    <!-- Всплывающее уведомление -->
+    <div id="notification" class="notification">Изменения успешно применены!</div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const defaultUrl = 'https://127.0.0.1:80';
+
+        tg.headerColor = '#FFFFFF';
+        tg.expand();
+
+        async function fetchAndRenderCheckboxes(userId) {
+            try {
+                const response = await fetch('/api/get_list_objects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const checkboxContainer = document.getElementById('checkboxes');
+                checkboxContainer.innerHTML = '';
+
+                data.objects.forEach(obj => {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = obj.id;
+                    checkbox.checked = obj.checked;
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(obj.name));
+                    checkboxContainer.appendChild(label);
+                    checkboxContainer.appendChild(document.createElement('br'));
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function applyChanges(userId) {
+            const checkboxes = document.querySelectorAll('#checkboxes input[type="checkbox"]');
+            const updatedObjects = Array.from(checkboxes).map(checkbox => ({
+                id: parseInt(checkbox.value),
+                checked: checkbox.checked
+            }));
+
+            try {
+                const response = await fetch('/api/update_list_objects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId, objects: updatedObjects })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                console.log('Update result:', result);
+
+
+                const notification = document.getElementById('notification');
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        const userId = 'user123'; ////
+        fetchAndRenderCheckboxes(userId);
+
+        document.getElementById('apply-button').addEventListener('click', () => {
+            applyChanges(userId);
+        });
+
+        // document.getElementById('theme-button').addEventListener('click', function() {
+        //     document.body.classList.toggle('dark-theme');
+        // });
+    </script>
+</body>
+</html>
