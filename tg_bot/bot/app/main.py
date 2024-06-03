@@ -42,7 +42,7 @@ async def cmd_start(message: Message) -> None:
 
 
 def is_userid_in_db(
-        user_id: int
+    user_id: int
 ) -> bool:
     # TODO: подключиться к базе данных и проверить наличие пользователя в базе
     return True
@@ -50,7 +50,7 @@ def is_userid_in_db(
 
 async def send_notify_to_user(call: CallbackQuery, user_id: int) -> None:
     photo = open(
-        r"C:\Users\ifonya\Pictures\Screenshots\уапуауаукипаипкупв.png",
+        r"static/1.jpg",
         mode='rb')
     await bot.send_photo(chat_id=user_id, photo=photo)
 

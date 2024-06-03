@@ -3,12 +3,12 @@ from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Annotated, List
 import os
 
 
-# NGROK_URL = os.getenv("NGROK_URL")
 BOT_TOKEN_HASH = os.getenv("API_TOKEN")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 COOKIE_NAME = os.getenv("COOKIE_NAME")
@@ -16,6 +16,14 @@ BACKEND_URL = os.getenv("BACKEND_URL")
 BACKEND_PORT = os.getenv("BACKEND_PORT")
 
 app = FastAPI()
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(HTTPSRedirectMiddleware)
 templates = Jinja2Templates(directory="templates")
 app.mount('/static', StaticFiles(directory="static"), name="static")

@@ -12,8 +12,16 @@ class YoloModel:
 
     def predict(
         self,
-        img: str
+        media: str
     ):
+        """
+        Выдает путь к файлу с разметкой и пример разметки
+
+        :param media: path to media
+        :type media: str
+        :return: (txt_path, txt_example)
+        :rtype: (str, str)
+        """
         txt_path = './yolov8/runs/detect/exp/labels'
         txt_example = '0 0.5 0.5 0.2 0.4'
-        return txt_path, txt_example
+        return txt_path, None
