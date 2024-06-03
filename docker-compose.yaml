@@ -5,15 +5,11 @@ services:
     build: ./tg_bot/backend
     ports:
       - "8000:8000"
+      - "8443:8443"
     env_file:
       - tg_bot/.env
 
-  tg_bot:
-    build: ./tg_bot/bot
-    env_file:
-      - tg_bot/.env
-
-  ml:
-    build: ./ml
-    ports:
-      - "8888:8000"
+  # ml:
+  #   build: ./ml
+  #   ports:
+  #     - "8888:8000"

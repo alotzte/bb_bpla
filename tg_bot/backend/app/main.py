@@ -1,25 +1,41 @@
+import asyncio
+from aiohttp import web
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from pydantic import BaseModel
 from typing import Annotated, List
-import os
+import uvicorn
+from aiogram.webhook.aiohttp_server import setup_application
+from bot_old import TelegramBot
+from contextlib import asynccontextmanager
+from bot import bot, dp
+from fastapi import APIRouter, Header
 
+from aiogram.types import Update
 
+from bot import bot, dp
 BOT_TOKEN_HASH = os.getenv("API_TOKEN")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 COOKIE_NAME = os.getenv("COOKIE_NAME")
 BACKEND_URL = os.getenv("BACKEND_URL")
 BACKEND_PORT = os.getenv("BACKEND_PORT")
 
-app = FastAPI()
-origins = ["*"]
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    from bot import start_telegram
+    await start_telegram()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,6 +101,28 @@ async def update_list_objects(update_request: UpdateObjectsRequest):
     return {"status": "success"}
 
 
+@app.post("/api/send_notification")
+async def send_notification(user_request: UserRequest):
+    # result = bot.send_notify_to_user(user_id=user_request.user_id)
+    result = True
+    if result:
+        return {"status": "success"}
+    else:
+        return {"status": "error"}
+
+
+@app.post('/webhook')
+async def bot_webhook(
+    update: dict,
+    x_telegram_bot_api_secret_token: Annotated[str | None, Header()] = None
+) -> None | dict:
+    """ Register webhook endpoint for telegram bot"""
+    if x_telegram_bot_api_secret_token != os.getenv('API_TOKEN'):
+        return {"status": "error", "message": "Wrong secret token !"}
+    telegram_update = Update(**update)
+    await dp.feed_webhook_update(bot=bot, update=telegram_update)
+
+
 @app.get("/notification-settings")
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -108,3 +146,5 @@ def login(request: Request):
         "login.html",
         response_dict
     )
+
+

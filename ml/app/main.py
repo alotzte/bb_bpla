@@ -1,9 +1,10 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from PIL import Image
 from ml_model.yolo import YoloModel
 from ml_model.exceptions.exp import ZeroObjectsDetected
+import io
 
 
 class Message(BaseModel):
@@ -11,20 +12,20 @@ class Message(BaseModel):
 
 
 app = FastAPI()
-origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-model = YoloModel("weights/example.pt")
+model = YoloModel("ml/app/ml_model/weights/best.pt")
 
 
 @app.post(
         "/predict",
-        description="Кидаешь изображение получаешь txt с разеткой",
+        description="Кидаешь изображение получаешь txt с разметкой",
         responses={
             404: {"model": Message, "description": "Zero objects detected"},
             200: {
@@ -40,25 +41,20 @@ model = YoloModel("weights/example.pt")
             },
         },
 )
-def predict(
-    file: UploadFile = File(...),
-    message: str = Query(max_length=20),
-    
+async def predict(
+    file: UploadFile = File(...)
+
 ):
     try:
-        # image = Image.open(io.BytesIO(await file.read()))
-        txt_path, txt_example = model.predict(media=message)
-        if txt_example is None:
+        image = Image.open(io.BytesIO(await file.read()))
+        obj_class, obj_coords = model.predict(media=image)
+        if obj_class is None:
             raise ZeroObjectsDetected
         return {
-            "txt_path": txt_path,
-            "txt_data": txt_example
+            "obj_class": obj_class,
+            "obj_coords": obj_coords
         }
     except ZeroObjectsDetected as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-
-
