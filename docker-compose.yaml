@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  backend:
+  tg_bot_backend:
     build: ./tg_bot/backend
     ports:
       - "8000:8000"
     env_file:
       - tg_bot/.env
 
-  bot:
+  tg_bot:
     build: ./tg_bot/bot
     env_file:
       - tg_bot/.env
