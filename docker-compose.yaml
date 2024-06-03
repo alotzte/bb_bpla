@@ -1,15 +1,23 @@
 version: '3.8'
 
 services:
-  tg_bot_backend:
-    build: ./tg_bot/backend
-    ports:
-      - "8000:8000"
-      - "8443:8443"
-    env_file:
-      - tg_bot/.env
+#  tg_bot_backend:
+#    build: ./tg_bot/backend
+#    ports:
+#      - "8000:8000"
+#      - "8443:8443"
+#    env_file:
+#      - tg_bot/.env
 
-  # ml:
-  #   build: ./ml
-  #   ports:
-  #     - "8888:8000"
+   ml:
+     build: ./ml
+     ports:
+       - "8888:8000"
+
+     deploy:
+       resources:
+         reservations:
+           devices:
+             - driver: nvidia
+               count: 1
+               capabilities: [ gpu ]

@@ -1,13 +1,16 @@
-from ultralytics import YOLO
+from ultralytics import YOLOv10
 
 
 class YoloModel:
     def __init__(self, model_path):
-        self.model = YOLO(model_path)
+        self.model = YOLOv10(model_path)
 
     def predict(self, img):
         res = self.model.predict(img, conf=0.5)
-        return res[0].cls, res[0].xyxyn
+        try:
+            return int(res[0].boxes.cls.to("cpu").tolist()[0]), res[0].boxes.xywh.to("cpu").tolist()[0]
+        except:
+            return None, None
 
 
     # def predict(

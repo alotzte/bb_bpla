@@ -20,7 +20,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-model = YoloModel("ml/app/ml_model/weights/best.pt")
+model = YoloModel("ml_model/weights/best.pt")
 
 
 @app.post(
@@ -47,7 +47,7 @@ async def predict(
 ):
     try:
         image = Image.open(io.BytesIO(await file.read()))
-        obj_class, obj_coords = model.predict(media=image)
+        obj_class, obj_coords = model.predict(image)
         if obj_class is None:
             raise ZeroObjectsDetected
         return {
