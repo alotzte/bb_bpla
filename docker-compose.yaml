@@ -12,7 +12,7 @@ services:
    ml:
      build: ./ml
      ports:
-       - "8888:8000"
+       - "8887:8000"
 
      deploy:
        resources:

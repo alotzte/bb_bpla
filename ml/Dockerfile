@@ -12,6 +12,8 @@ RUN pip install huggingface huggingface_hub
 
 RUN pip install git+https://github.com/THU-MIG/yolov10.git
 
+RUN pip install dill
+
 COPY ./app .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
