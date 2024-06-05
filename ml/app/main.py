@@ -130,7 +130,7 @@ async def predict_photo(
             "description": "Zero objects detected"
         },
     })
-def detect_faces(file: UploadFile = File(...)):
+def predict_video(file: UploadFile = File(...)):
     suffix = os.path.splitext(file.filename)[1]
     temp = NamedTemporaryFile(delete=False, suffix=suffix)
     try:

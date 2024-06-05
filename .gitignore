@@ -3,3 +3,4 @@ __pycache__
 get_tg_webhook.html
 /runs
 /data
+tg_bot/backend/app/bd/files/database.db

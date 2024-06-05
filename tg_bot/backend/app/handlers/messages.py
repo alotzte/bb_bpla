@@ -1,4 +1,4 @@
-from .bot import dp
+from bot import dp
 from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
 

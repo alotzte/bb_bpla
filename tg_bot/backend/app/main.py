@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
@@ -5,12 +6,21 @@ from tortoise import Tortoise
 
 from bot import bot, dp
 from routes import root_router
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from handlers import messages
+
+
+URL_WEBHOOK = os.getenv("URL_WEBHOOK")
 
 
 async def lifespan(application: FastAPI):
     from bot import set_bot_commands_menu
     response = await bot.set_webhook(
-        url="https://usable-goldfish-precious.ngrok-free.app/webhook",
+        url=f"{URL_WEBHOOK}/webhook",
         allowed_updates=dp.resolve_used_update_types(),
         drop_pending_updates=True
     )
