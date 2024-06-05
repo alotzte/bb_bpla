@@ -26,3 +26,12 @@ class ObjectListResponse(BaseModel):
 class UpdateObjectsRequest(BaseModel):
     user_id: str
     objects: List[UpdateObjectItem]
+
+
+class Photos_data(BaseModel):
+    upd_photo_path: str
+    txt_path: str
+
+
+class MLDataRequest(BaseModel):
+    data: Photos_data

@@ -12,7 +12,7 @@ class YoloModel:
     def __init__(self, model_path):
         self.model = YOLOv10(model_path)
 
-    def predict_photos(self, img, filename):
+    def predict_photo(self, img, filename):
         width, height = img.size
         res = self.model.predict(
             img,
@@ -36,7 +36,8 @@ class YoloModel:
 
         return {
             'upd_photo_path': upd_photo_path,
-            'txt_path': txt_path
+            'txt_path': txt_path,
+            # 'confidence':
         }
 
     def predict_video(self, video_path):

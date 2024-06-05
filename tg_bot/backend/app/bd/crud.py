@@ -78,3 +78,25 @@ class UserSettingsCRUD:
         if user_settings:
             return user_settings
         return False
+
+    @staticmethod
+    async def get_all_users_settings():
+        users_with_settings = []
+        users = await User.all()
+        for user in users:
+            user_settings = await UserSettings.get_or_none(user=user)
+            if user_settings:
+                users_with_settings.append(
+                    {
+                        "telegram_id": user.telegram_id,
+                        "settings": user_settings.settings
+                    }
+                )
+            else:
+                users_with_settings.append(
+                    {
+                        "telegram_id": user.telegram_id,
+                        "settings": None
+                    }
+                )
+        return users_with_settings

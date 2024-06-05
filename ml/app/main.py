@@ -65,7 +65,7 @@ async def predict_photo(
         for file in files:
             image = Image.open(io.BytesIO(await file.read()))
 
-            data = model.predict_photos(image, file.filename)
+            data = model.predict_photo(image, file.filename)
             photos_data.append(
                 {
                     "upd_photo_path": data['upd_photo_path'],
@@ -74,6 +74,10 @@ async def predict_photo(
             )
         if len(photos_data) == 0:
             raise ZeroObjectsDetected
+        else:
+            ...
+            # request post {url}/api/send_messages
+            # send photos_data
         return {
             "data": photos_data
         }

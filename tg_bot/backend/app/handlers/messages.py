@@ -1,6 +1,8 @@
 from bot import dp
+from aiogram import Bot
 from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
+from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 @dp.message(CommandStart())
@@ -17,3 +19,36 @@ async def cmd_settings(message: Message):
 
 @dp.message(Command('off_all_notifications'))
 async def cmd_off_all_notifications(message: Message): pass
+
+
+async def bot_send_message(
+    bot: Bot,
+    user_id: int,
+    photo_path: str,
+):
+    # photo = open(
+    #     photo_path,
+    #     mode='rb')
+    # with open(photo_path, 'rb') as photo:
+    await bot.send_photo(chat_id=user_id, photo=photo_path)
+
+    button_true = InlineKeyboardButton(
+        text="👍",
+        callback_data='true'
+    )
+
+    button_false = InlineKeyboardButton(
+        text="👎",
+        callback_data='false'
+    )
+
+    markup = InlineKeyboardMarkup(
+        inline_keyboard=[[button_true, button_false]]
+    )
+
+    await bot.send_message(
+        chat_id=user_id,
+        text="Подтвердите найденый объект",
+        reply_markup=markup
+    )
+
