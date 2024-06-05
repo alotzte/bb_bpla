@@ -1,4 +1,6 @@
-FROM python:3.11
+FROM nvcr.io/nvidia/tensorrt:24.05-py3
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 

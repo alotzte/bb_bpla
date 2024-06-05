@@ -124,9 +124,9 @@ class YoloModel:
         for frame_number, r in enumerate(self.model.predict(
             video_path,
             conf=0.5,
-            # save=True,
+            save=True,
             stream=True,
-            # imgsz=(height, width),
+            imgsz=(height, width),
         )):
 
             if len(r.boxes.xywh) > 0:
