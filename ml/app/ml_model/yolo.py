@@ -40,34 +40,34 @@ class YoloModel:
             # 'confidence':
         }
 
-    def predict_video(self, video_path):
-        last_frame_success = False
-        fps = self.get_video_info(video_path)
-        intervals = {}
+    # def predict_video(self, video_path):
+    #     last_frame_success = False
+    #     fps = self.get_video_info(video_path)
+    #     intervals = {}
 
-        for frame_number, r in enumerate(self.model.predict(
-            video_path,
-            conf=0.5,
-            save=True,
-            stream=True,
-            # imgsz=(height, width),
-        )):
-            print(len(r.boxes.xywh))
-            if len(r.boxes.xywh) > 0:
-                if not last_frame_success:
-                    start_timing = self.get_timing(fps, frame_number)
-                    intervals[start_timing] = ''
-                end_timing = self.get_timing(fps, frame_number)
-                last_frame_success = True
-            else:
-                if last_frame_success:
-                    intervals[start_timing] = end_timing
-                last_frame_success = False
+    #     for frame_number, r in enumerate(self.model.predict(
+    #         video_path,
+    #         conf=0.5,
+    #         save=True,
+    #         stream=True,
+    #         # imgsz=(height, width),
+    #     )):
+    #         print(len(r.boxes.xywh))
+    #         if len(r.boxes.xywh) > 0:
+    #             if not last_frame_success:
+    #                 start_timing = self.get_timing(fps, frame_number)
+    #                 intervals[start_timing] = ''
+    #             end_timing = self.get_timing(fps, frame_number)
+    #             last_frame_success = True
+    #         else:
+    #             if last_frame_success:
+    #                 intervals[start_timing] = end_timing
+    #             last_frame_success = False
 
-        if last_frame_success:
-            intervals[start_timing] = end_timing
+    #     if last_frame_success:
+    #         intervals[start_timing] = end_timing
 
-        return self.merge_intervals(intervals)
+    #     return self.merge_intervals(intervals)
 
     def get_timing(self, fps, frame_number):
         frame_time = frame_number / fps
@@ -80,7 +80,10 @@ class YoloModel:
     def get_video_info(self, video_path):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
-        return fps
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        return fps, height, width, frames
 
     def merge_intervals(self, data):
         def str_to_time(time_str):
@@ -110,3 +113,29 @@ class YoloModel:
             time_to_str(end) for start, end in merged_intervals
         }
         return result
+
+    def predict_video(self, video_path):
+        fps, height, width, frames = self.get_video_info(video_path)
+        frames_to_skip = int(fps / 2)
+        last_frame_success = False
+        intervals = []
+        not_success_in_row = 0
+
+        for frame_number, r in enumerate(self.model.predict(
+            video_path,
+            conf=0.5,
+            # save=True,
+            stream=True,
+            # imgsz=(height, width),
+        )):
+
+            if len(r.boxes.xywh) > 0:
+                if not last_frame_success and not_success_in_row > frames_to_skip:
+                    intervals.append((frame_number + 1) / frames)
+                    last_frame_success = True
+                    not_success_in_row = 0
+            else:
+                not_success_in_row += 1
+                last_frame_success = False
+
+        return intervals
