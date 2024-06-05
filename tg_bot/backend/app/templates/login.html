@@ -14,7 +14,7 @@
 <body>
   <h1>Войти</h1>
   <div id="wrapper">
-    <form id="signin" method="" action="" autocomplete="off">
+    <form id="signin" method="post" action="" autocomplete="off">
       <input type="text" id="user" name="user" placeholder="логин" />
       <input type="password" id="pass" name="pass" placeholder="пароль" />
       <button id="redirectButton" type="submit">&#xf0da;</button> 
@@ -23,20 +23,29 @@
   </div>
 
   <script>
+    document.getElementById('redirectButton').addEventListener('click', function(event) {
+      event.preventDefault(); // Предотвращаем стандартное поведение формы
 
-    function redirectTo(url) {
-      window.location.href = url;
-    }
+      let user = document.getElementById('user').value;
 
-    const button = document.getElementById('redirectButton');
-    button.addEventListener('click', function(event) {
-      event.preventDefault();
-
-      const backendUrl = window.env.BACKEND_URL;
-      const backendPort = window.env.BACKEND_PORT;
-      const url = `${backendUrl}:${backendPort}/notification-settings`;
-
-      redirectTo(url);
+      fetch('/api/user_in_db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id: user })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = '/notification-settings';
+        } else {
+          alert('User not found in database');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
     });
   </script>
 </body>

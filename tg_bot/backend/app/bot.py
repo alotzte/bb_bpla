@@ -1,59 +1,43 @@
-import os
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import WebhookInfo, BotCommand
+from aiogram.types import BotCommand
+import requests
+import os
 
 
-API_TOKEN = os.getenv('API_TOKEN')
-WEBHOOK_HOST = 'http://localhost:8443'
-WEBHOOK_PATH = '/webhook'
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-WEBHOOK_TOKEN = os.getenv('WEBHOOK_TOKEN')
+bot = Bot(os.getenv("API_TOKEN"),
+          default=DefaultBotProperties(
+              parse_mode=ParseMode.HTML
+          ))
 
-telegram_router = Router(name="telegram")
 dp = Dispatcher()
 
 
-dp.include_router(telegram_router)
-bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
-
-
-async def set_webhook(my_bot: Bot) -> None:
-    # Check and set webhook for Telegram
-    async def check_webhook() -> WebhookInfo | None:
-        try:
-            webhook_info = await my_bot.get_webhook_info()
-            return webhook_info
-        except Exception as e:
-            print(e)
-            # logger.error(f"Can't get webhook info - {e}")
-            return
-
-    current_webhook_info = await check_webhook()
-
-    try:
-        await bot.set_webhook(
-            WEBHOOK_URL,
-            secret_token=WEBHOOK_TOKEN,
-            drop_pending_updates=current_webhook_info.pending_update_count > 0,
-            max_connections=100,
-        )
-
-    except Exception as e:
-        print(e)
+async def check_user_in_db(api_endpoint, user_id):
+    url = f"{api_endpoint}/api/user_in_db"
+    payload = {"user_id": user_id}
+    response = requests.post(url, json=payload)
+    return await response.json() if response.status_code == 200 else {"error": "Request failed"}
 
 
 async def set_bot_commands_menu(my_bot: Bot) -> None:
-    # Register commands for Telegram bot (menu)
     commands = [
-        BotCommand(command="/id", description="👋 Get my ID"),
+        BotCommand(
+            command="/start",
+            description="👋 Запуск бота"
+        ),
+        BotCommand(
+            command="/settings",
+            description="⚙️ Настройки"
+        ),
+        BotCommand(
+            command="/off_all_notifications",
+            description="🔇 Выключить уведомления"
+        ),
     ]
+
     try:
         await my_bot.set_my_commands(commands)
     except Exception as e:
         print(e)
-
-
-async def start_telegram():
-    await set_webhook(bot)
-    await set_bot_commands_menu(bot)

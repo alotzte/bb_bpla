@@ -28,7 +28,7 @@
             margin-top: 20px;
             margin-bottom: 40px;
             width: 100%;
-            max-width: 320px;
+            max-width: 600px; /* Измените ширину контейнера */
             margin-left: auto;
             margin-right: auto;
         }
@@ -38,17 +38,38 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-header, .table-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            align-items: center;
+        }
+
+        .table-header {
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+        }
+
+        .table-header div, .table-row div {
+            flex: 1;
+            text-align: center;
         }
 
         input[type="checkbox"] {
             margin-right: 10px;
         }
 
-        label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            color: rgb(255, 255, 255);
+        input[type="text"] {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            color: #000;
+            width: 50px; /* Установите нужную ширину */
+            flex-shrink: 0;
         }
 
         button {
@@ -129,7 +150,7 @@
 </head>
 <body>
 
-    <h2>Выберите классы для уведомления</h2>
+    <h2>Настройка уведомлений</h2>
 
     <div id="checkbox-container">
         <div id="checkboxes"></div>
@@ -145,10 +166,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
-        const defaultUrl = 'https://127.0.0.1:80';
-
         tg.headerColor = '#FFFFFF';
         tg.expand();
+        let userId;
 
         async function fetchAndRenderCheckboxes(userId) {
             try {
@@ -168,16 +188,57 @@
                 const checkboxContainer = document.getElementById('checkboxes');
                 checkboxContainer.innerHTML = '';
 
+                // Добавляем заголовки
+                const headerRow = document.createElement('div');
+                headerRow.className = 'table-header';
+                headerRow.innerHTML = `
+                    <div>Присылать уведомления</div>
+                    <div>Название класса</div>
+                    <div>Минимальный confidence для уведомления</div>
+                `;
+                checkboxContainer.appendChild(headerRow);
+
+                // Добавляем строки с данными
                 data.objects.forEach(obj => {
-                    const label = document.createElement('label');
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    
+                    const checkboxCell = document.createElement('div');
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.value = obj.id;
                     checkbox.checked = obj.checked;
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(obj.name));
-                    checkboxContainer.appendChild(label);
-                    checkboxContainer.appendChild(document.createElement('br'));
+                    checkboxCell.appendChild(checkbox);
+
+                    const nameCell = document.createElement('div');
+                    nameCell.textContent = obj.name;
+
+                    const inputCell = document.createElement('div');
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = 'Введите данные';
+                    input.value = obj.inputData || ''; // Предполагается, что данные для ввода хранятся в obj.inputData
+                    input.addEventListener('input', function(event) {
+                    event.target.value = event.target.value.replace(/[^0-9]/g, '');
+                    });
+
+                    input.setAttribute('inputmode', 'numeric');
+                    input.setAttribute('min', '0');
+                    input.setAttribute('max', '100');
+
+                    // Добавляем обработчик события input для проверки значения
+                    input.addEventListener('input', function(event) {
+                    const value = parseInt(event.target.value);
+                    if (value < 0 || value > 100) {
+                        event.target.value = '';
+                    }
+                    });
+                    inputCell.appendChild(input);
+
+                    row.appendChild(checkboxCell);
+                    row.appendChild(nameCell);
+                    row.appendChild(inputCell);
+                    checkboxContainer.appendChild(row);
                 });
             } catch (error) {
                 console.error('Error:', error);
@@ -185,11 +246,16 @@
         }
 
         async function applyChanges(userId) {
-            const checkboxes = document.querySelectorAll('#checkboxes input[type="checkbox"]');
-            const updatedObjects = Array.from(checkboxes).map(checkbox => ({
-                id: parseInt(checkbox.value),
-                checked: checkbox.checked
-            }));
+            const rows = document.querySelectorAll('.table-row');
+            const updatedObjects = Array.from(rows).map(row => {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                const input = row.querySelector('input[type="text"]');
+                return {
+                    id: parseInt(checkbox.value),
+                    checked: checkbox.checked,
+                    inputData: input.value
+                };
+            });
 
             try {
                 const response = await fetch('/api/update_list_objects', {
@@ -207,7 +273,6 @@
                 const result = await response.json();
                 console.log('Update result:', result);
 
-
                 const notification = document.getElementById('notification');
                 notification.classList.add('show');
                 setTimeout(() => {
@@ -218,16 +283,30 @@
             }
         }
 
-        const userId = 'user123'; ////
-        fetchAndRenderCheckboxes(userId);
+        async function getUserId() {
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                userId = `${tg.initDataUnsafe.user.id}`;
+            } else {
+                try {
+                    const response = await fetch('/api/get_user_id');
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    userId = data.userId;
+                } catch (error) {
+                    console.error('Error fetching user ID:', error);
+                    return;
+                }
+            }
 
+            fetchAndRenderCheckboxes(userId);
+        }
+
+        getUserId();
         document.getElementById('apply-button').addEventListener('click', () => {
             applyChanges(userId);
         });
-
-        // document.getElementById('theme-button').addEventListener('click', function() {
-        //     document.body.classList.toggle('dark-theme');
-        // });
     </script>
 </body>
 </html>
