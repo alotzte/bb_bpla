@@ -68,7 +68,7 @@ async def predict_photo(
             data = model.predict_photo(image, file.filename)
             photos_data.append(
                 {
-                    "upd_photo_path": data['upd_photo_path'],
+                    "link": data['link'],
                     "txt_path": data['txt_path']
                 }
             )
@@ -79,7 +79,8 @@ async def predict_photo(
             # request post {url}/api/send_messages
             # send photos_data
         return {
-            "data": photos_data
+            "data": photos_data,
+            "type": "images"
         }
 
     except ZeroObjectsDetected as e:
@@ -147,8 +148,8 @@ def predict_video(file: UploadFile = File(...)):
         finally:
             file.file.close()
         # print(temp.name)
-        intervals = model.predict_video(temp.name)
-        if len(intervals) == 0:
+        link, timestamps = model.predict_video(temp.name)
+        if len(timestamps) == 0:
             raise ZeroObjectsDetected
 
     except ZeroObjectsDetected as e:
@@ -159,6 +160,7 @@ def predict_video(file: UploadFile = File(...)):
         os.remove(temp.name)
 
     return {
-        'upd_video_path': file.filename,
-        'intervals': intervals
+        'link': link,
+        'marks': timestamps,
+        'type': 'video'
     }

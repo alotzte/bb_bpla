@@ -2,10 +2,12 @@ from datetime import datetime, timedelta
 import os
 from ultralytics import YOLOv10
 import cv2
+import shutil
 
+from .s3_uploader import upload_file_to_s3
 
-FULL_PATH_TO_TXT = '/app/ml_model/results/'
-FULL_PATH_TO_VIDEO = '/app/ml_model/results/'
+FULL_PATH_TO_TXT = '/app/ml_model/temp/'
+FULL_PATH_TO_VIDEO = '/app/ml_model/temp/'
 
 
 class YoloModel:
@@ -21,7 +23,7 @@ class YoloModel:
         )  # TODO augment
 
         # TODO: создать папки
-        upd_photo_path = f"""{
+        link = f"""{
             os.path.join(
                 FULL_PATH_TO_TXT, 'img', os.path.splitext(filename)[0])}.jpg"""
 
@@ -29,17 +31,29 @@ class YoloModel:
             os.path.join(
                 FULL_PATH_TO_TXT, 'txt', os.path.splitext(filename)[0])}.txt"""
 
-        # TODO: Продумать куда сохранять
-        res[0].save(upd_photo_path)
-        res[0].save_txt(txt_path)
+        # если объект нашелся
+        res[0].save(link)
+        # res[0].save_txt(txt_path)
+
+        self.save_txt(txt_path, res)
         # TODO: Проверить сохранение
 
+        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos')
+        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts')
+
         return {
-            'upd_photo_path': upd_photo_path,
-            'txt_path': txt_path,
+            'link': photo_url,
+            'txt_path': txt_url,
             # 'confidence':
         }
 
+    def save_txt(self, path, result):
+        with open(path, '+w') as file:
+            for idx, prediction in enumerate(result[0].boxes.xywhn):
+                cls = int(result[0].boxes.cls[idx].item())
+                # Write line to file in YOLO label format : cls x y w h
+                file.write(f"{cls} {prediction[0].item()} {prediction[1].item()} {prediction[2].item()} {prediction[3].item()}\n")
+    
     # def predict_video(self, video_path):
     #     last_frame_success = False
     #     fps = self.get_video_info(video_path)
@@ -69,13 +83,13 @@ class YoloModel:
 
     #     return self.merge_intervals(intervals)
 
-    def get_timing(self, fps, frame_number):
-        frame_time = frame_number / fps
-        hours = int(frame_time // 3600)
-        minutes = int((frame_time % 3600) // 60)
-        seconds = int(frame_time % 60)
-        formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-        return formatted_time
+    # def get_timing(self, fps, frame_number):
+    #     frame_time = frame_number / fps
+    #     hours = int(frame_time // 3600)
+    #     minutes = int((frame_time % 3600) // 60)
+    #     seconds = int(frame_time % 60)
+    #     formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    #     return formatted_time
 
     def get_video_info(self, video_path):
         cap = cv2.VideoCapture(video_path)
@@ -85,41 +99,43 @@ class YoloModel:
         frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         return fps, height, width, frames
 
-    def merge_intervals(self, data):
-        def str_to_time(time_str):
-            return datetime.strptime(time_str, "%H:%M:%S")
+    # def merge_intervals(self, data):
+    #     def str_to_time(time_str):
+    #         return datetime.strptime(time_str, "%H:%M:%S")
 
-        def time_to_str(time_obj):
-            return time_obj.strftime("%H:%M:%S")
+    #     def time_to_str(time_obj):
+    #         return time_obj.strftime("%H:%M:%S")
 
-        intervals = [
-            (str_to_time(start), str_to_time(end))
-            for start, end in data.items()]
-        intervals.sort()
+    #     intervals = [
+    #         (str_to_time(start), str_to_time(end))
+    #         for start, end in data.items()]
+    #     intervals.sort()
 
-        merged_intervals = []
-        for start, end in intervals:
-            if not merged_intervals:
-                merged_intervals.append((start, end))
-            else:
-                last_start, last_end = merged_intervals[-1]
-                if last_end < start - timedelta(seconds=1):
-                    merged_intervals.append((start, end))
-                else:
-                    merged_intervals[-1] = (last_start, max(last_end, end))
+    #     merged_intervals = []
+    #     for start, end in intervals:
+    #         if not merged_intervals:
+    #             merged_intervals.append((start, end))
+    #         else:
+    #             last_start, last_end = merged_intervals[-1]
+    #             if last_end < start - timedelta(seconds=1):
+    #                 merged_intervals.append((start, end))
+    #             else:
+    #                merged_intervals[-1] = (last_start, max(last_end, end))
 
-        result = {
-            time_to_str(start):
-            time_to_str(end) for start, end in merged_intervals
-        }
-        return result
+    #     result = {
+    #         time_to_str(start):
+    #         time_to_str(end) for start, end in merged_intervals
+    #     }
+    #     return result
 
     def predict_video(self, video_path):
         fps, height, width, frames = self.get_video_info(video_path)
-        frames_to_skip = int(fps / 2)
+        object_name = os.path.basename(video_path)
+        object_name, suffix = os.path.splitext(object_name)
+        max_missed_frames = int(fps / 2)
         last_frame_success = False
-        intervals = []
-        not_success_in_row = 0
+        timestamps = []
+        missed_frames = 0
 
         for frame_number, r in enumerate(self.model.predict(
             video_path,
@@ -130,12 +146,20 @@ class YoloModel:
         )):
 
             if len(r.boxes.xywh) > 0:
-                if not last_frame_success and not_success_in_row > frames_to_skip:
-                    intervals.append((frame_number + 1) / frames)
-                    last_frame_success = True
-                    not_success_in_row = 0
+                if not last_frame_success:
+                    timestamps.append((frame_number + 1) / frames)
+                last_frame_success = True
+                missed_frames = 0
             else:
-                not_success_in_row += 1
-                last_frame_success = False
+                if last_frame_success:
+                    missed_frames += 1
+                    if missed_frames > max_missed_frames:
+                        last_frame_success = False
+                else:
+                    missed_frames = 0
 
-        return intervals
+        saved_video_path = f'/app/runs/detect/predict/{object_name}.avi'
+        video_url = upload_file_to_s3(saved_video_path, 'bb-bpla', 'upd_videos')
+        shutil.rmtree('/app/runs/detect')
+
+        return video_url, timestamps

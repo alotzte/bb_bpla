@@ -1,6 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:24.05-py3
-
-ARG DEBIAN_FRONTEND=noninteractive
+FROM python:3.11
 
 WORKDIR /app
 
@@ -15,6 +13,8 @@ RUN pip install huggingface huggingface_hub
 RUN pip install git+https://github.com/THU-MIG/yolov10.git
 
 RUN pip install dill
+
+RUN pip install boto3
 
 COPY ./app .
 

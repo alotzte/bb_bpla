@@ -15,7 +15,8 @@ services:
      build: ./ml
      ports:
        - "8887:8000"
-
+     env_file:
+       - ml/.env
      deploy:
        resources:
          reservations:
