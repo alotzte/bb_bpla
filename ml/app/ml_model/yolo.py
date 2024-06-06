@@ -31,15 +31,15 @@ class YoloModel:
             os.path.join(
                 FULL_PATH_TO_TXT, 'txt', os.path.splitext(filename)[0])}.txt"""
 
-        # если объект нашелся
+        # TODO: если объект нашелся
         res[0].save(link)
         # res[0].save_txt(txt_path)
 
         self.save_txt(txt_path, res)
-        # TODO: Проверить сохранение
 
         photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos')
         txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts')
+        # TODO: удалить файлы
 
         return {
             'link': photo_url,

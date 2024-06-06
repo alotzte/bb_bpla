@@ -46,10 +46,11 @@ model = YoloModel("ml_model/weights/yolov10n.pt")
                         "example": {
                             "data": [
                                 {
-                                    "upd_photo_path": "Путь к фото c bbox",
-                                    "txt_path": "Путь к txt файлу"
+                                    "link": "сслыка на фото на s3",
+                                    "txt_path": "ссылка на txt на s3",
                                 }
-                            ]
+                            ],
+                            "type": "images"
                         }
                     }
                 },
@@ -124,8 +125,9 @@ async def predict_photo(
             "content": {
                 "application/json": {
                     "example": {
-                        "upd_video_path": "Путь к видео c bbox",
-                        "intervals": "Интервалы (начало_эпизода:конец_эпизода)"
+                        "link": "ссылка на видео на s3",
+                        "marks": ["метка 1", "метка 2"],
+                        "type": "video",
                     }
                 }
             },
