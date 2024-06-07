@@ -14,7 +14,7 @@ import requests
 
 from ml_model.yolo import YoloModel
 from ml_model.exceptions.exp import ZeroObjectsDetected
-from ml_model.models.response_models import (PredictPhotoResponse,
+from ml_model.models.response_models import (PredictPhotosResponse,
                                              PredictVideoResponse)
 
 
@@ -33,10 +33,16 @@ app.add_middleware(
 )
 model = YoloModel("ml_model/weights/yolov10n.pt")
 
+class UrlsModel(BaseModel):
+    urls: List[str]
 
 @app.post(
     "/ml/predict_photos",
-    description="Кидаешь массив с изображениями и получаешь список путей фото с bbox и txt с разметкой",
+    description=(
+        'Принимает массив с ссылками c s3 на изображения  (например '
+        '["https://bb-bpla.fra1.digitaloceanspaces.com/zidane.jpg", '
+        '"https://bb-bpla.fra1.digitaloceanspaces.com/bus.jpg"] ) и возвращает массив ссылок на фото и txt на s3'
+    ),
     responses={
         404: {
             "model": Message,
@@ -47,7 +53,7 @@ model = YoloModel("ml_model/weights/yolov10n.pt")
             "content": {
                 "application/json": {
                     "example": {
-                        "data": [
+                        "predicted_data": [
                             {
                                 "link": "ссылка на фото на s3",
                                 "txt_path": "ссылка на txt на s3",
@@ -56,59 +62,32 @@ model = YoloModel("ml_model/weights/yolov10n.pt")
                         "type": "images"
                     }
                 }
-            },
-        },
+            }
+        }
     },
-    response_model=PredictPhotoResponse
+    response_model=PredictPhotosResponse
 )
-async def predict_photos(
-    files: Optional[List[UploadFile]] = File(None),
-    urls: Optional[str] = Form(None)
-):
-    if not files and not urls:
-        raise HTTPException(status_code=400, detail="Either files or urls must be provided")
-
+async def predict_photos(urls: UrlsModel):
     photos_data = []
 
     try:
-        if files:
-            for file in files:
-                image = Image.open(io.BytesIO(await file.read()))
-                data = model.predict_photo(image, file.filename)
-                photos_data.append(
-                    {
-                        "link": data['link'],
-                        "txt_path": data['txt_path']
-                    }
-                )
-
-        if urls:
-            try:
-                urls_list = json.loads(urls)  # Парсим JSON строку в список
-            except json.JSONDecodeError:
-                raise HTTPException(status_code=400, detail="Invalid JSON format for urls")
-
-            for url in urls_list:
-                response = requests.get(url)
-                img = Image.open(io.BytesIO(response.content))
-                filename = url.split("/")[-1]
-                data = model.predict_photo(img, filename)
-                photos_data.append(
-                    {
-                        "link": data['link'],
-                        "txt_path": data['txt_path']
-                    }
-                )
+        for url in urls.urls:
+            response = requests.get(url)
+            img = Image.open(io.BytesIO(response.content))
+            filename = url.split("/")[-1]
+            data = model.predict_photo(img, filename)
+            photos_data.append(
+                {
+                    "link": data['link'],
+                    "txt_path": data['txt_path']
+                }
+            )
 
         if len(photos_data) == 0:
             raise ZeroObjectsDetected
 
-        else:
-            ...
-            # TODO: отправлять в тг бота
-
         return {
-            "data": photos_data,
+            "predicted_data": photos_data,
             "type": "images"
         }
 
@@ -120,7 +99,8 @@ async def predict_photos(
 
 @app.post(
     "/ml/predict_video",
-    description="Кидаешь видео, получаешь путь к видео и список интервалов",
+    description=('Принимает: ссылку с s3 на видео (например "https://bb-bpla.fra1.digitaloceanspaces.com/test_video.mp4" )\n'
+                 'Возвращает: ссылку с s3 на видео и временные отметки'),
     responses={
         200: {
             "description": "Successful Response",
@@ -141,29 +121,24 @@ async def predict_photos(
     },
     response_model=PredictVideoResponse
 )
-async def predict_video(file: UploadFile = File(None), url: str = Form(None)):
-    if file is None and url is None:
-        raise HTTPException(status_code=400, detail="Either file or url must be provided")
+async def predict_video(
+    url: str = Form(...)
+):
+    # Удаляем кавычки из начала и конца строки, если они есть
+    if url.startswith('"') and url.endswith('"'):
+        url = url[1:-1]
 
-    if file:
-        suffix = os.path.splitext(file.filename)[1]
-        temp = NamedTemporaryFile(delete=False, suffix=suffix)
-        try:
-            try:
-                contents = file.file.read()
-                with temp as f:
-                    f.write(contents)
-            except Exception:
-                return {"message": "There was an error uploading the file"}
-            finally:
-                file.file.close()
-            file_path = temp.name
-        except Exception as e:
-            return {"message": f"There was an error processing the file:\n{str(e)}"}
-    else:
-        file_path = url
-
+    # Проверяем доступность URL
     try:
+        response = requests.head(url)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail=f"URL {url} is not accessible.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error accessing URL {url}: {str(e)}")
+
+    file_path = url
+    try:
+        # Предположим, что модель и метод model.predict_video уже определены где-то в вашем коде
         link, timestamps = model.predict_video(file_path)
         if len(timestamps) == 0:
             raise ZeroObjectsDetected
@@ -171,11 +146,7 @@ async def predict_video(file: UploadFile = File(None), url: str = Form(None)):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         return {"message": f"There was an error processing the file:\n{str(e)}"}
-    finally:
-        if file:
-            os.remove(file_path)
 
-    logger.warn(timestamps)
     return {
         'link': link,
         'marks': timestamps,

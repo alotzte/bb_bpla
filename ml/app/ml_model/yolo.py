@@ -19,7 +19,7 @@ class YoloModel:
         res = self.model.predict(
             img,
             conf=0.5,
-            imgsz=(height, width),
+            imgsz=(320, 320),
         )  # TODO augment
 
         # TODO: создать папки
@@ -65,8 +65,8 @@ class YoloModel:
 
     def predict_video(self, video_path):
         fps, height, width, frames = self.get_video_info(video_path)
-        object_name = os.path.basename(video_path)
-        object_name, suffix = os.path.splitext(object_name)
+        object_fullname = os.path.basename(video_path)
+        object_name, suffix = os.path.splitext(object_fullname)
         max_missed_frames = int(fps / 2)
         last_frame_success = False
         timestamps = []
@@ -77,7 +77,7 @@ class YoloModel:
             conf=0.5,
             save=True,
             stream=True,
-            imgsz=(height, width),
+            imgsz=(320, 320), # attention!
         )):
 
             if len(r.boxes.xywh) > 0:
@@ -96,5 +96,5 @@ class YoloModel:
         saved_video_path = f'/app/runs/detect/predict/{object_name}.avi'
         video_url = upload_file_to_s3(saved_video_path, 'bb-bpla', 'upd_videos')
         shutil.rmtree('/app/runs/detect')
-
+        os.remove(object_fullname)
         return video_url, timestamps

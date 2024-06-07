@@ -2,13 +2,13 @@ from pydantic import BaseModel, HttpUrl
 from typing import List
 
 
-class PhotoResponse(BaseModel):
+class PredictedPhotoData(BaseModel):
     link: str
     txt_path: str
 
 
-class PredictPhotoResponse(BaseModel):
-    data: List[PhotoResponse]
+class PredictPhotosResponse(BaseModel):
+    predicted_data: List[PredictedPhotoData]
     type: str = "images"
 
 
