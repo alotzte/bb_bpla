@@ -122,33 +122,42 @@ async def predict_photos(urls: UrlsModel):
     response_model=PredictVideoResponse
 )
 async def predict_video(
-    url: str = Form(...)
+    urls: UrlsModel
 ):
-    # Удаляем кавычки из начала и конца строки, если они есть
-    if url.startswith('"') and url.endswith('"'):
-        url = url[1:-1]
+    videos_data = []
+    for url in urls.urls:
+        # Удаляем кавычки из начала и конца строки, если они есть
+        if url.startswith('"') and url.endswith('"'):
+            url = url[1:-1]
 
-    # Проверяем доступность URL
-    try:
-        response = requests.head(url)
-        if response.status_code != 200:
-            raise HTTPException(status_code=400, detail=f"URL {url} is not accessible.")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error accessing URL {url}: {str(e)}")
+        # Проверяем доступность URL
+        try:
+            response = requests.head(url)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail=f"URL {url} is not accessible.")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error accessing URL {url}: {str(e)}")
 
-    file_path = url
-    try:
-        # Предположим, что модель и метод model.predict_video уже определены где-то в вашем коде
-        link, timestamps = model.predict_video(file_path)
-        if len(timestamps) == 0:
-            raise ZeroObjectsDetected
-    except ZeroObjectsDetected as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        return {"message": f"There was an error processing the file:\n{str(e)}"}
+        file_path = url
+        try:
+            # Предположим, что модель и метод model.predict_video уже определены где-то в вашем коде
+            link, timestamps = model.predict_video(file_path)
+            
+            if len(timestamps) == 0:
+                raise ZeroObjectsDetected
+            
+            videos_data.append(
+                {
+                    "link": link,
+                    "marks": timestamps
+                }
+            )
+        except ZeroObjectsDetected as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except Exception as e:
+            return {"message": f"There was an error processing the file:\n{str(e)}"}
 
     return {
-        'link': link,
-        'marks': timestamps,
+        'predicted_data': videos_data,
         'type': 'video'
     }
