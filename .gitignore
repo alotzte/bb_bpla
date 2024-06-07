@@ -4,3 +4,5 @@ get_tg_webhook.html
 /runs
 /data
 tg_bot/backend/app/bd/files/database.db
+ml/app/ml_model/weights/test.mp4
+test111.avi

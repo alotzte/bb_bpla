@@ -14,6 +14,8 @@ RUN pip install git+https://github.com/THU-MIG/yolov10.git
 
 RUN pip install dill
 
+RUN pip install boto3
+
 COPY ./app .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
