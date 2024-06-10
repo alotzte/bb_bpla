@@ -37,7 +37,7 @@ export const files = {
     };
 
     return await httpClient
-      .post('api/v1/files', formData, config)
+      .post('api/v1/upload', formData, config)
       .then((response) => response.data);
   },
   getFileInfo: async (id: number) => {

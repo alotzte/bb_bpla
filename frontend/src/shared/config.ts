@@ -23,12 +23,6 @@ const getApiHost = (protocol: Protocol) =>
     ? getEnvVar('VITE_API_HOST_HTTPS')
     : getEnvVar('VITE_API_HOST_HTTP');
 
-const getApiHost2 = (protocol: Protocol) =>
-  protocol === 'https:'
-    ? getEnvVar('VITE_API_DEMO_HOST_HTTPS')
-    : getEnvVar('VITE_API_DEMO_HOST_HTTP');
-
 export const getApiUrl = (protocol: Protocol) => `${getApiHost(protocol)}`;
-export const getApiUrl2 = (protocol: Protocol) => `${getApiHost2(protocol)}`;
 
 export const isDev = () => import.meta.env.DEV;
