@@ -11,16 +11,22 @@ services:
   #   volumes:
   #     - ./tg_bot/backend/app/bd/files:/app/bd/files
 
-   ml:
-     build: ./ml
-     ports:
-       - "8887:8000"
-     env_file:
-       - ml/.env
-     deploy:
-       resources:
-         reservations:
-           devices:
-             - driver: nvidia
-               count: 1
-               capabilities: [ gpu ]
+  #  ml:
+  #    build: ./ml
+  #    ports:
+  #      - "8887:8000"
+  #    env_file:
+  #      - ml/.env
+  #    deploy:
+  #      resources:
+  #        reservations:
+  #          devices:
+  #            - driver: nvidia
+  #              count: 1
+  #              capabilities: [ gpu ]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+

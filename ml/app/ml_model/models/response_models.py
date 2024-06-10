@@ -6,6 +6,10 @@ class PredictedPhotoData(BaseModel):
     link: str
     txt_path: str
 
+class PredictedVideoData(BaseModel):
+    link: str
+    marks: list[float]
+
 
 class PredictPhotosResponse(BaseModel):
     predicted_data: List[PredictedPhotoData]
@@ -13,8 +17,7 @@ class PredictPhotosResponse(BaseModel):
 
 
 class PredictVideoResponse(BaseModel):
-    link: str
-    marks: list[float]
+    predicted_data: List[PredictedVideoData]
     type: str = "video"
 
 
