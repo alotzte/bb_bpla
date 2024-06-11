@@ -26,9 +26,12 @@ export const files = {
       })
       .then((response) => response.data);
   },
-  sendFile: async (files: File[]) => {
+  sendFile: async (uploadedFiles: File[]) => {
     const formData = new FormData();
-    files.forEach((file) => formData.append(file.name, file));
+
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      formData.append('files', uploadedFiles[i]);
+    }
 
     const config = {
       headers: {

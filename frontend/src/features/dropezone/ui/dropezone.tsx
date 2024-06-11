@@ -1,9 +1,11 @@
 import { api } from '@/shared/services/api';
+import { Flex } from 'antd';
 import Dropzone from 'react-dropzone';
 
 interface DropeZoneProps {
   onDrop: (files: File[]) => void;
   type: api.FileType;
+  fileNames: string[];
 }
 
 const imageAccept = {
@@ -26,7 +28,7 @@ const videoAccept = {
   'video/webm': [],
 };
 
-export const DropeZone = ({ onDrop, type }: DropeZoneProps) => {
+export const DropeZone = ({ onDrop, type, fileNames }: DropeZoneProps) => {
   return (
     <Dropzone
       onDrop={(files) => onDrop(files)}
@@ -37,7 +39,15 @@ export const DropeZone = ({ onDrop, type }: DropeZoneProps) => {
         <div {...getRootProps()}>
           <input {...getInputProps()} />
           <div style={style.drope}>
-            <div>Перетащите сюда файлы или нажмите и выберите нужные</div>
+            {fileNames.length ? (
+              <Flex vertical>
+                {fileNames.map((filename) => (
+                  <div>{filename}</div>
+                ))}
+              </Flex>
+            ) : (
+              <div>Перетащите сюда файлы или нажмите и выберите нужные</div>
+            )}
           </div>
         </div>
       )}
@@ -48,7 +58,7 @@ export const DropeZone = ({ onDrop, type }: DropeZoneProps) => {
 const style = {
   drope: {
     width: '360px',
-    height: '160px',
+    minHeight: '160px',
     backgroundColor: '#f0f0f0',
     border: '2px #c8c8c8 dashed',
     display: 'flex',

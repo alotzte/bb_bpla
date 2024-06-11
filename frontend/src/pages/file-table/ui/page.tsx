@@ -8,6 +8,7 @@ import { DropezoneModal, dropezoneModalOpened } from '@/features/dropezone';
 import { api } from '@/shared/services/api';
 import { FileModal, fileModalOpened, setSelectedId } from '@/features/player';
 import { Typography } from 'antd';
+import styled from 'styled-components';
 
 const { Text } = Typography;
 
@@ -25,7 +26,8 @@ const columns: ColumnsType<FilesTable> = [
   { title: 'ID', dataIndex: 'id' },
   {
     title: 'Имя',
-    dataIndex: 'title',
+    render: (_, record) => <Title>{record.title}</Title>,
+    width: 240,
   },
   {
     title: 'Статус',
@@ -36,6 +38,7 @@ const columns: ColumnsType<FilesTable> = [
         </Text>
       </Flex>
     ),
+    align: 'center',
   },
   {
     title: 'Тип',
@@ -44,6 +47,7 @@ const columns: ColumnsType<FilesTable> = [
         <Text>{getType[record.type]}</Text>
       </Flex>
     ),
+    align: 'center',
   },
 ];
 
@@ -131,3 +135,10 @@ export const FileTablePage = () => {
     </div>
   );
 };
+
+const Title = styled.div`
+  width: 210px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+`;
