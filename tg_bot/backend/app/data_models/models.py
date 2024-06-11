@@ -29,9 +29,15 @@ class UpdateObjectsRequest(BaseModel):
 
 
 class Photos_data(BaseModel):
-    upd_photo_path: str
-    txt_path: str
+    classes: float
+    confidence: float
 
 
 class MLDataRequest(BaseModel):
     data: Photos_data
+
+
+class MessageData(BaseModel):
+    photo_url: str
+    classes: List[float]
+    confs: List[float]

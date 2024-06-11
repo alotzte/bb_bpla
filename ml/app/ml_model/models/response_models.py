@@ -6,6 +6,7 @@ class PredictedPhotoData(BaseModel):
     link: str
     txt_path: str
 
+
 class PredictedVideoData(BaseModel):
     link: str
     marks: list[float]
@@ -23,3 +24,7 @@ class PredictVideoResponse(BaseModel):
 
 class VideoURL(BaseModel):
     url: HttpUrl
+
+
+class UrlsModel(BaseModel):
+    urls: List[str]

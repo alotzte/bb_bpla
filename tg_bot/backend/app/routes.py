@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.logger import logger
 from fastapi.responses import RedirectResponse
 from fastapi import Request
@@ -12,7 +12,8 @@ from aiogram.types import Update
 from handlers.messages import bot_send_message
 from bd.crud import UserCRUD, UserSettingsCRUD
 from data_models import (ObjectListResponse, MLDataRequest,
-                         UserRequest, UpdateObjectsRequest)
+                         UserRequest, UpdateObjectsRequest,
+                         MessageData)
 
 
 VERY_SECRET_KEY = os.getenv("VERY_SECRET_KEY")
@@ -59,11 +60,11 @@ def read_root(request: Request):
 
 async def get_default_settings():
     sample_objects = [
-        {"id": 1, "name": "БПЛА коптерного типа", "checked": True, "inputData": 1},
-        {"id": 2, "name": "Самолет", "checked": False, "inputData": 1},
-        {"id": 3, "name": "Вертолет", "checked": True, "inputData": 1},
-        {"id": 4, "name": "Птица", "checked": True, "inputData": 1},
-        {"id": 5, "name": "БПЛА самолетного типа", "checked": True, "inputData": 1},
+        {"id": 1, "name": "БПЛА коптерного типа", "checked": True, "inputData": 50},
+        {"id": 2, "name": "Самолет", "checked": False, "inputData": 50},
+        {"id": 3, "name": "Вертолет", "checked": True, "inputData": 50},
+        {"id": 4, "name": "Птица", "checked": True, "inputData": 50},
+        {"id": 5, "name": "БПЛА самолетного типа", "checked": True, "inputData": 50},
     ]
     return sample_objects
 
@@ -117,19 +118,50 @@ async def update_list_objects(update_request: UpdateObjectsRequest):
 
 
 @root_router.post("/api/send_messages")
-async def send_messages(request: Request):
+async def send_messages(
+    request: Request,
+    message_data: MessageData,
+    background_tasks: BackgroundTasks
+):
     authorization: str = request.headers.get("Authorization")
     if authorization != VERY_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Иди лесом")
-    await bot_send_messages()
+    
+    background_tasks.add_task(
+        bot_send_messages,
+        message_data.photo_url,
+        message_data.classes,
+        message_data.confs
+    )
     return {"status": "success"}
 
 
-async def bot_send_messages():
+async def bot_send_messages(
+    photo_url,
+    classes,
+    confs,
+):
     for data in await UserSettingsCRUD.get_all_users_settings():
         if data['telegram_id'] != 1:
-            await bot_send_message(
-                bot,
-                data['telegram_id'],
-                photo_path="https://img1.joyreactor.cc/pics/comment/Helltaker-Игры-artist_what-Judgement-%28Helltaker%29-4419627.jpeg",
-            )
+            for i in range(len(classes)):
+                logger.warning(int(classes[i]) + 1)
+                logger.warning(confs)
+                settings_conf = await get_conf_by_class(data['telegram_id'], int(classes[i]))
+                if confs[i]*100 <= settings_conf:
+                    await bot_send_message(
+                        bot,
+                        data['telegram_id'],
+                        photo_path=photo_url,
+                        predicted_class=int(classes[i])
+                    )
+                    break
+
+
+async def get_conf_by_class(telegram_id, idx):
+    settings = await UserSettingsCRUD.get_user_settings_by_telegram_id(
+        telegram_id
+    )
+    logger.warning(settings.settings[idx])
+    if settings.settings[idx]['checked']:
+        return int(settings.settings[idx]['inputData'])
+    return 0

@@ -1,21 +1,19 @@
-import json
 import io
-import os
-from typing import List, Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from tempfile import NamedTemporaryFile
 from PIL import Image
 import requests
 
 from ml_model.yolo import YoloModel
 from ml_model.exceptions.exp import ZeroObjectsDetected
-from ml_model.models.response_models import (PredictPhotosResponse,
-                                             PredictVideoResponse)
+from ml_model.models.response_models import (
+    PredictPhotosResponse,
+    UrlsModel,
+)
 
 
 class Message(BaseModel):
@@ -31,10 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-model = YoloModel("ml_model/weights/yolov10n.pt")
+# model = YoloModel("ml_model/weights/yolov10n.pt")
+model = YoloModel("ml_model/weights/best_after_clean_init_dataset.pt")
 
-class UrlsModel(BaseModel):
-    urls: List[str]
 
 @app.post(
     "/ml/predict_photos",
@@ -67,9 +64,11 @@ class UrlsModel(BaseModel):
     },
     response_model=PredictPhotosResponse
 )
-async def predict_photos(urls: UrlsModel):
-    photos_data = []
+async def predict_photos(
+    urls: UrlsModel,
+):
 
+    photos_data = []
     try:
         for url in urls.urls:
             response = requests.get(url)
@@ -83,9 +82,6 @@ async def predict_photos(urls: UrlsModel):
                 }
             )
 
-        if len(photos_data) == 0:
-            raise ZeroObjectsDetected
-
         return {
             "predicted_data": photos_data,
             "type": "images"
@@ -98,66 +94,19 @@ async def predict_photos(urls: UrlsModel):
 
 
 @app.post(
-    "/ml/predict_video",
-    description=('Принимает: ссылку с s3 на видео (например "https://bb-bpla.fra1.digitaloceanspaces.com/test_video.mp4" )\n'
-                 'Возвращает: ссылку с s3 на видео и временные отметки'),
-    responses={
-        200: {
-            "description": "Successful Response",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "link": "ссылка на видео на s3",
-                        "marks": ["метка 1", "метка 2"],
-                        "type": "video",
-                    }
-                }
-            },
-        },
-        404: {
-            "model": Message,
-            "description": "Zero objects detected"
-        },
-    },
-    response_model=PredictVideoResponse
+        "/ml/predict_video",
 )
-async def predict_video(
-    urls: UrlsModel
+def predict_video(
+    urls: UrlsModel,
+    background_tasks: BackgroundTasks,
 ):
-    videos_data = []
     for url in urls.urls:
-        # Удаляем кавычки из начала и конца строки, если они есть
         if url.startswith('"') and url.endswith('"'):
             url = url[1:-1]
 
-        # Проверяем доступность URL
-        try:
-            response = requests.head(url)
-            if response.status_code != 200:
-                raise HTTPException(status_code=400, detail=f"URL {url} is not accessible.")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Error accessing URL {url}: {str(e)}")
-
-        file_path = url
-        try:
-            # Предположим, что модель и метод model.predict_video уже определены где-то в вашем коде
-            link, timestamps = model.predict_video(file_path)
-            
-            if len(timestamps) == 0:
-                raise ZeroObjectsDetected
-            
-            videos_data.append(
-                {
-                    "link": link,
-                    "marks": timestamps
-                }
-            )
-        except ZeroObjectsDetected as e:
-            raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
-            return {"message": f"There was an error processing the file:\n{str(e)}"}
+        background_tasks.add_task(model.send_async_results, url)
 
     return {
-        'predicted_data': videos_data,
+        'predicted_status': 'in_progress',
         'type': 'video'
     }

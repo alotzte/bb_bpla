@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
@@ -11,6 +11,8 @@ bot = Bot(os.getenv("TG_BOT_TOKEN"),
           ))
 
 dp = Dispatcher()
+router = Router()
+dp.include_router(router)
 
 
 async def set_bot_commands_menu(my_bot: Bot) -> None:

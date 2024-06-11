@@ -1,32 +1,64 @@
 version: '3.8'
 
 services:
-  # tg_bot_backend:
+  tg_bot_backend:
   
-  #   build: ./tg_bot/backend
-  #   ports:
-  #     - "88:8000"
-  #   env_file:
-  #     - tg_bot/.env
-  #   volumes:
-  #     - ./tg_bot/backend/app/bd/files:/app/bd/files
-
-  #  ml:
-  #    build: ./ml
-  #    ports:
-  #      - "8887:8000"
-  #    env_file:
-  #      - ml/.env
-  #    deploy:
-  #      resources:
-  #        reservations:
-  #          devices:
-  #            - driver: nvidia
-  #              count: 1
-  #              capabilities: [ gpu ]
-
-  frontend:
-    build: ./frontend
+    build: ./tg_bot/backend
     ports:
-      - "3000:3000"
+      - "88:8000"
+    env_file:
+      - tg_bot/.env
+    volumes:
+      - ./tg_bot/backend/app/bd/files:/app/bd/files
+
+  ml:
+    build: ./ml
+    ports:
+      - "8887:8000"
+    env_file:
+      - ml/.env
+    networks:
+      - back-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - frontend/.env
+  # netback:
+  #   image: bpla:0.0.3
+  #   ports:
+  #     - "8080:80"
+  #   environment:
+  #     ASPNETCORE_URLS: "http://*:80"
+  #   volumes:
+  #     - "/home/config/appsettings.json:/app/appsettings.json"
+  #   networks:
+  #     - back-network
+  
+  #  db:
+  
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_USER: "postgres"
+  #     POSTGRES_PASSWORD: "Bpla100624_pong"
+  #   volumes:
+  #     - "/home/data:/var/lib/postgresql/data"
+  #   ports:
+  #     - "16543:5432"
+  #   networks:
+  #     - back-network
+
+networks:
+  back-network:
+    driver: bridge
+
 

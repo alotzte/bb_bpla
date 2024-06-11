@@ -1,1 +1,3 @@
-from .models import UserRequest, ObjectItem, UpdateObjectItem, ObjectListResponse, UpdateObjectsRequest, MLDataRequest
+from .models import (UserRequest, ObjectItem, UpdateObjectItem,
+                     ObjectListResponse, UpdateObjectsRequest, MLDataRequest,
+                     MessageData)
