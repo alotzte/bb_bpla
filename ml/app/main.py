@@ -1,6 +1,6 @@
 import io
 
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, Header, HTTPException
 from fastapi.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -92,19 +92,27 @@ async def predict_photos(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+from uuid import UUID
+
 
 @app.post(
-        "/ml/predict_video",
+    "/ml/predict_video",
+    status_code=200
 )
 def predict_video(
     urls: UrlsModel,
     background_tasks: BackgroundTasks,
+    CorrelationId: UUID = Header(None),
 ):
     for url in urls.urls:
         if url.startswith('"') and url.endswith('"'):
             url = url[1:-1]
 
-        background_tasks.add_task(model.send_async_results, url)
+        background_tasks.add_task(
+            model.send_async_results,
+            url,
+            CorrelationId,
+        )
 
     return {
         'predicted_status': 'in_progress',

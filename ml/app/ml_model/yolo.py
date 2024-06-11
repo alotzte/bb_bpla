@@ -17,6 +17,7 @@ BACKEND_PORT = os.getenv("BACKEND_PORT")
 FULL_PATH_TO_TXT = '/app/ml_model/temp/'
 FULL_PATH_TO_VIDEO = '/app/ml_model/temp/'
 
+VERY_SECRET_KEY = os.getenv("VERY_SECRET_KEY")
 
 class YoloModel:
     def __init__(self, model_path):
@@ -48,9 +49,8 @@ class YoloModel:
         txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts')
 
         with ThreadPoolExecutor() as executor:
-            future = executor.submit(self.send_data_to_tg_bot, res, photo_url)
+            future = executor.submit(self.send_data_to_tg_bot, res, photo_url, txt_url)
 
-        # Логируем ответ, когда задача завершится
         def log_response(future):
             try:
                 response = future.result()
@@ -69,16 +69,22 @@ class YoloModel:
             'txt_path': txt_url,
         }
 
-    def send_data_to_tg_bot(self, res, photo_url):
+    def send_data_to_tg_bot(
+        self,
+        res,
+        photo_url,
+        txt_url
+    ):
         data = {
             "photo_url": photo_url,
+            "txt_url": txt_url,
             "classes": res[0].boxes.cls.tolist(),
             "confs": res[0].boxes.conf.tolist(),
         }
 
         logger.warning(data)
         headers = {
-            "Authorization": "6e80bf7385f34085dc3ac9f115d08d36bd8a308bcf2b1c8f0e282487a7ba0d50",
+            "Authorization": f"{VERY_SECRET_KEY}",
             "Content-Type": "application/json"
         }
 
@@ -141,19 +147,28 @@ class YoloModel:
     async def predict_video(self, video_path):
         return await run_in_threadpool(self.sync_predict_video, video_path)
 
-    async def send_async_results(self, video_path):
-        link, timestamps = self.predict_video(video_path)
-        video_data = {
+    async def send_async_results(self, video_path, correlation_id):
+        link, timestamps = await self.predict_video(video_path)
+
+        url = f'{BACKEND_HOST}:{BACKEND_PORT}/api/v1/upload/processed-video'
+
+        headers = {
+            "Content-Type": "application/json",
+            "CorrelationId": f"{correlation_id}"
+        }
+
+        data = {
             "link": link,
             "marks": timestamps
         }
-        req = {
-            "predicted_data": video_data,
-            "type": "videos"
-        }
 
-        requests.post(f'http://{BACKEND_HOST}:{BACKEND_PORT}/api/v1/?',
-                      json=req)
+        ans = requests.post(
+            url=url,
+            headers=headers,
+            json=data
+        )
+
+        logger.warning(ans)
         # return {
         #     "predicted_data": video_data,
         #     "type": "videos"
