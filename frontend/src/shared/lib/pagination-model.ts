@@ -13,7 +13,7 @@ interface PaginationModelParams<GetParams, GetResponse> {
 
 const defaultPagination: PaginationParams = {
   limit: 10,
-  offset: 1,
+  offset: 0,
 };
 
 export interface PaginationResponse<T> extends PaginationParams {

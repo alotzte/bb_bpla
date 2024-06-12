@@ -85,9 +85,11 @@ export const FileTablePage = () => {
           <Button type="link" onClick={() => openFile(record)}>
             Подробнее
           </Button>
-          <Button href={record.txt} type="link" target="_blank" download>
-            Загрузить TXT файл
-          </Button>
+          {record.txt && (
+            <Button href={record.txt} type="link" target="_blank" download>
+              Загрузить TXT файл
+            </Button>
+          )}
         </Flex>
       ),
   };

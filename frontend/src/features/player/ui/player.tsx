@@ -38,6 +38,9 @@ export const Player = ({ file }: PlayerProps) => {
           url={file.link}
           playing={isPlaying}
           onEnded={() => setPlaying(false)}
+          height={360}
+          width={640}
+          progressInterval={10}
         />
       </div>
       <ConfigProvider theme={theme}>
@@ -76,7 +79,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   max-width: 720px;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0);
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.2);
   border-radius: 2%;
 `;

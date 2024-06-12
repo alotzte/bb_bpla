@@ -1,4 +1,3 @@
-import { filesPaginationModel } from '@/entities/files';
 import { api } from '@/shared/services/api';
 import { message } from 'antd';
 import type { AxiosError } from 'axios';
@@ -42,12 +41,6 @@ sample({
   clock: loadFilesFx.failData,
   fn: () => 'error',
   target: notificationFx,
-});
-
-sample({
-  clock: loadFilesFx.doneData,
-  fn: () => filesPaginationModel.defaultPagination,
-  target: filesPaginationModel.getItems,
 });
 
 loadFilesFx.use(api.files.sendFile);
