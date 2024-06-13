@@ -1,4 +1,9 @@
-import { type FilesTable, filesPaginationModel } from '@/entities/files';
+import {
+  type FilesTable,
+  filesPaginationModel,
+  pagination$,
+  changePagination,
+} from '@/entities/files';
 import type { ColumnsType } from 'antd/es/table';
 import { useUnit } from 'effector-react';
 import { pageUnmounted } from '../model';
@@ -8,6 +13,7 @@ import { DropezoneModal, dropezoneModalOpened } from '@/features/dropezone';
 import { api } from '@/shared/services/api';
 import { FileModal, fileModalOpened, setSelectedId } from '@/features/player';
 import { Typography } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Text } = Typography;
@@ -52,10 +58,11 @@ const columns: ColumnsType<FilesTable> = [
 ];
 
 export const FileTablePage = () => {
-  const [files, isLoading, totalCount] = useUnit([
+  const [files, isLoading, totalCount, pagination] = useUnit([
     filesPaginationModel.$list,
     filesPaginationModel.$isLoading,
     filesPaginationModel.$totalCount,
+    pagination$,
   ]);
 
   const [type, setType] = useState<api.FileType>('image');
@@ -96,23 +103,37 @@ export const FileTablePage = () => {
 
   return (
     <div>
-      <Flex gap="small">
+      <Flex justify="space-between">
+        <Flex gap="small">
+          <Button
+            type="primary"
+            onClick={() => {
+              setType('video');
+              dropezoneModalOpened();
+            }}
+          >
+            Загрузить видео
+          </Button>
+          <Button
+            onClick={() => {
+              setType('image');
+              dropezoneModalOpened();
+            }}
+          >
+            Загрузить фото
+          </Button>
+        </Flex>
         <Button
           type="primary"
+          loading={isLoading}
+          icon={<ReloadOutlined />}
           onClick={() => {
-            setType('video');
-            dropezoneModalOpened();
+            const { current, pageSize } = pagination;
+            const offset = (current - 1) * pageSize;
+            filesPaginationModel.getItems({ offset, limit: pageSize });
           }}
         >
-          Загрузить видео
-        </Button>
-        <Button
-          onClick={() => {
-            setType('image');
-            dropezoneModalOpened();
-          }}
-        >
-          Загрузить фото
+          Обновить
         </Button>
       </Flex>
       <Table
@@ -126,9 +147,12 @@ export const FileTablePage = () => {
         <Pagination
           total={totalCount}
           showSizeChanger
-          onChange={(page, limit) => {
-            const offset = (page - 1) * limit;
-            filesPaginationModel.getItems({ offset, limit });
+          current={pagination.current}
+          pageSize={pagination.pageSize}
+          onChange={(current, pageSize) => {
+            changePagination({ current, pageSize });
+            const offset = (current - 1) * pageSize;
+            filesPaginationModel.getItems({ offset, limit: pageSize });
           }}
         />
       </Flex>
