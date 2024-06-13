@@ -10,6 +10,8 @@ export interface FilesGetResponse {
   status: FileStatus;
   type: FileType;
   txt?: string;
+  uploadDateTime?: string;
+  processedTime?: number;
 }
 
 export interface FileInfoGetResponse {

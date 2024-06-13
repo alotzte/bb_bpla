@@ -15,6 +15,7 @@ import { FileModal, fileModalOpened, setSelectedId } from '@/features/player';
 import { Typography } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import { formatTime } from '@/shared/lib/format';
 
 const { Text } = Typography;
 
@@ -33,7 +34,26 @@ const columns: ColumnsType<FilesTable> = [
   {
     title: 'Имя',
     render: (_, record) => <Title>{record.title}</Title>,
-    width: 240,
+    width: 180,
+  },
+  {
+    title: 'Время загрузки',
+    render: (_, record) => (
+      <Flex justify="center">
+        {record.uploadDateTime &&
+          new Date(record.uploadDateTime).toLocaleString()}
+      </Flex>
+    ),
+    align: 'center',
+  },
+  {
+    title: 'Время обработки',
+    render: (_, record) => (
+      <Flex justify="center">
+        {record.processedTime && formatTime.msecToString(record.processedTime)}
+      </Flex>
+    ),
+    align: 'center',
   },
   {
     title: 'Статус',
@@ -163,7 +183,7 @@ export const FileTablePage = () => {
 };
 
 const Title = styled.div`
-  width: 210px;
+  width: 160px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
