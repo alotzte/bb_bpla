@@ -19,6 +19,7 @@ FULL_PATH_TO_VIDEO = '/app/ml_model/temp/'
 
 VERY_SECRET_KEY = os.getenv("VERY_SECRET_KEY")
 
+
 class YoloModel:
     def __init__(self, model_path):
         self.model = YOLOv10(model_path)
@@ -106,6 +107,21 @@ class YoloModel:
         frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         return fps, height, width, frames
 
+    def draw_boxes(self, frame, boxes, classes):
+
+        class_colors = {
+            0: (255, 0, 0),  # Red
+            1: (0, 255, 0),  # Green
+            2: (0, 0, 255),  # Blue
+            3: (255, 255, 0),  # Cyan
+            4: (255, 0, 255)  # Magenta
+        }
+        for box, cls in zip(boxes, classes):
+            color = class_colors.get(int(cls), (0, 255, 255))  # Yellow as default
+            x_min, y_min, x_max, y_max = map(int, box)
+            cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, 2)
+        return frame
+
     def sync_predict_video(self, video_path):
         fps, height, width, frames = self._get_video_info(video_path)
         object_fullname = os.path.basename(video_path)
@@ -115,15 +131,19 @@ class YoloModel:
         timestamps = []
         missed_frames = 0
 
+        fourcc = cv2.VideoWriter_fourcc(*'VP80')    
+        saved_video_path = f'/app/ml_model/{object_name}.webm'
+        out = cv2.VideoWriter(saved_video_path, fourcc, fps, (width, height))
+
         for frame_number, r in enumerate(self.model.predict(
             video_path,
             conf=0.5,
-            save=True,
             stream=True,
-            imgsz=(320, 320), # attention!
+            imgsz=(240, 240), # attention!
         )):
-
+            frame = r.orig_img 
             if len(r.boxes.xywh) > 0:
+                frame = self.draw_boxes(frame, r.boxes.xyxy, r.boxes.cls)
                 if not last_frame_success:
                     timestamps.append((frame_number + 1) / frames)
                 last_frame_success = True
@@ -135,12 +155,19 @@ class YoloModel:
                         last_frame_success = False
                 else:
                     missed_frames = 0
+            out.write(frame)
+        out.release()
 
-        saved_video_path = f'/app/runs/detect/predict/{object_name}.avi'
+        logger.warning(f'Start uploading {saved_video_path}')
         video_url = upload_file_to_s3(
             saved_video_path, 'bb-bpla', 'upd_videos'
         )
-        shutil.rmtree('/app/runs/detect')
+        logger.warning(f'End uploading {saved_video_path}')
+        try:
+            shutil.rmtree('/app/runs/detect')
+        except Exception as e:
+            logger.warning(f'{e}\n/app/runs/detect not found')
+        os.remove(saved_video_path)
         os.remove(object_fullname)
         return video_url, timestamps
 
@@ -161,6 +188,7 @@ class YoloModel:
             "link": link,
             "marks": timestamps
         }
+        logger.warning(data)
 
         ans = requests.post(
             url=url,
@@ -169,7 +197,3 @@ class YoloModel:
         )
 
         logger.warning(ans)
-        # return {
-        #     "predicted_data": video_data,
-        #     "type": "videos"
-        # }

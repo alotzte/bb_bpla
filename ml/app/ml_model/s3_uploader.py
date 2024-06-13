@@ -46,8 +46,12 @@ def upload_file_to_s3(file_name, bucket, data_type,
 
     # ????
     content_type, _ = mimetypes.guess_type(file_name)
-    if content_type is None:
-        content_type = 'application/octet-stream'  # Тип по умолчанию
+    if data_type == 'upd_videos':
+        content_type = 'video/webm'
+    elif content_type is not None:
+        pass
+    else:
+        content_type = 'application/octet-stream' # Тип по умолчанию
 
     try:
         s3_client.upload_file(
