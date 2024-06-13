@@ -41,8 +41,8 @@ export const DropeZone = ({ onDrop, type, fileNames }: DropeZoneProps) => {
           <div style={style.drope}>
             {fileNames.length ? (
               <Flex vertical>
-                {fileNames.map((filename) => (
-                  <div>{filename}</div>
+                {fileNames.map((filename, index) => (
+                  <div key={index}>{filename}</div>
                 ))}
               </Flex>
             ) : (
