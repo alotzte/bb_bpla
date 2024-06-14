@@ -18,6 +18,8 @@ const imageAccept = {
   'image/tif': [],
   'image/tiff': [],
   'image/webp': [],
+ 'application/zip': [],
+ 'application/rar': [],
 };
 
 const videoAccept = {
