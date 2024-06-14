@@ -28,6 +28,10 @@ class VideoURL(BaseModel):
     url: HttpUrl
 
 
+class ArchiveURL(BaseModel):
+    url: HttpUrl
+
+
 class UrlsModel(BaseModel):
     urls: List[str]
 
@@ -39,3 +43,12 @@ class PhotosObject(BaseModel):
 
 class UrlsModelPhoto(BaseModel):
     photos: List[PhotosObject]
+
+
+class ArchiveObject(BaseModel):
+    url: str
+    correlation_id: UUID
+
+
+class UrlsModelArchive(BaseModel):
+    archives: List[ArchiveObject]

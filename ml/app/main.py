@@ -15,6 +15,7 @@ from ml_model.models.response_models import (
     PredictPhotosResponse,
     UrlsModel,
     UrlsModelPhoto,
+    UrlsModelArchive,
 )
 
 
@@ -32,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # model = YoloModel("ml_model/weights/yolov10n.pt")
-model = YoloModel("ml_model/weights/good_data_v8n.pt")
+model = YoloModel("ml_model/weights/best_after_clean_init_dataset.pt")
 
 
 @app.post(
@@ -98,6 +99,33 @@ async def predict_photos(
 
 
 @app.post(
+    "/ml/predict_photos_archive"
+)
+async def predict_photos_archive(
+    urls: UrlsModelArchive,
+    background_tasks: BackgroundTasks,
+    # CorrelationId: UUID = Header(None),
+):
+    for url in urls.archives:
+        logger.warning(url)
+        url_ = url.url
+        if url_.startswith('"') and url_.endswith('"'):
+            url_ = url_[1:-1]
+
+        background_tasks.add_task(
+            model.send_async_results,
+            url_,
+            url.correlation_id,
+            data_type='archive'
+        )
+
+    return {
+        'predicted_status': 'in_progress',
+        'type': 'archive'
+    }
+
+
+@app.post(
     "/ml/predict_video",
     status_code=200
 )
@@ -114,6 +142,7 @@ def predict_video(
             model.send_async_results,
             url,
             CorrelationId,
+            data_type='video'
         )
 
     return {

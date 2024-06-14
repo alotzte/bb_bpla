@@ -19,43 +19,48 @@ services:
       - ml/.env
     networks:
       - back-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+    volumes:
+      - ./ml/app/ml_model:/app/ml_model
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [ gpu ]
 
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - frontend/.env
-  # netback:
-  #   image: bpla:0.0.3
-  #   ports:
-  #     - "8080:80"
-  #   environment:
-  #     ASPNETCORE_URLS: "http://*:80"
-  #   volumes:
-  #     - "/home/config/appsettings.json:/app/appsettings.json"
-  #   networks:
-  #     - back-network
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_HOST_HTTP=http://134.122.58.32:8080/
+      # - VITE_API_HOST_HTTP=http://netback:80/
+    networks:
+      - back-network
+
+  netback:
+    image: bpla:0.0.12
+    ports:
+      - "8080:80"
+    environment:
+      ASPNETCORE_URLS: "http://*:80"
+    volumes:
+      - "/home/config/appsettings.json:/app/appsettings.json"
+    networks:
+      - back-network
   
-  #  db:
-  
-  #   image: postgres:15-alpine
-  #   environment:
-  #     POSTGRES_USER: "postgres"
-  #     POSTGRES_PASSWORD: "Bpla100624_pong"
-  #   volumes:
-  #     - "/home/data:/var/lib/postgresql/data"
-  #   ports:
-  #     - "16543:5432"
-  #   networks:
-  #     - back-network
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Bpla100624_pong"
+    volumes:
+      - "/home/data:/var/lib/postgresql/data"
+    ports:
+      - "16543:5432"
+    networks:
+      - back-network
 
 networks:
   back-network:

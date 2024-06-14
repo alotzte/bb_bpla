@@ -8,7 +8,8 @@ ACCESS_KEY = os.getenv("ACCESS_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 SPACE_NAME = os.getenv("SPACE_NAME")
 REGION_NAME = os.getenv("REGION_NAME")
-ENDPOINT_URL = f'https://{REGION_NAME}.digitaloceanspaces.com'
+SERVICE_NAME = os.getenv("SERVICE_NAME")
+ENDPOINT_URL = f'https://{REGION_NAME}.{SERVICE_NAME}'
 
 s3_client = boto3.client('s3',
                          region_name=REGION_NAME,
