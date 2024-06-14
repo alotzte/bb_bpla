@@ -39,5 +39,6 @@ class MLDataRequest(BaseModel):
 
 class MessageData(BaseModel):
     photo_url: str
+    txt_url: str
     classes: List[float]
     confs: List[float]

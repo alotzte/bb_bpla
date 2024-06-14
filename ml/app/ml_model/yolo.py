@@ -7,6 +7,7 @@ import shutil
 from fastapi.concurrency import run_in_threadpool
 from fastapi.logger import logger
 from concurrent.futures import ThreadPoolExecutor
+import time
 
 from .s3_uploader import upload_file_to_s3
 
@@ -123,6 +124,7 @@ class YoloModel:
         return frame
 
     def sync_predict_video(self, video_path):
+        start_time = time.time()
         fps, height, width, frames = self._get_video_info(video_path)
         object_fullname = os.path.basename(video_path)
         object_name, suffix = os.path.splitext(object_fullname)
@@ -158,6 +160,8 @@ class YoloModel:
             out.write(frame)
         out.release()
 
+        end_time = time.time() - start_time
+
         logger.warning(f'Start uploading {saved_video_path}')
         video_url = upload_file_to_s3(
             saved_video_path, 'bb-bpla', 'upd_videos'
@@ -169,13 +173,13 @@ class YoloModel:
             logger.warning(f'{e}\n/app/runs/detect not found')
         os.remove(saved_video_path)
         os.remove(object_fullname)
-        return video_url, timestamps
+        return video_url, timestamps, end_time
 
     async def predict_video(self, video_path):
         return await run_in_threadpool(self.sync_predict_video, video_path)
 
     async def send_async_results(self, video_path, correlation_id):
-        link, timestamps = await self.predict_video(video_path)
+        link, timestamps, end_time = await self.predict_video(video_path)
 
         url = f'{BACKEND_HOST}:{BACKEND_PORT}/api/v1/upload/processed-video'
 
@@ -186,7 +190,8 @@ class YoloModel:
 
         data = {
             "link": link,
-            "marks": timestamps
+            "marks": timestamps,
+            "processed_milliseconds": int(end_time) * 1000
         }
         logger.warning(data)
 
@@ -196,4 +201,4 @@ class YoloModel:
             json=data
         )
 
-        logger.warning(ans)
+        logger.warning(f'tg_bot answer code: {ans}')

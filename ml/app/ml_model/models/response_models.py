@@ -11,13 +11,13 @@ class PredictedPhotoData(BaseModel):
 
 class PredictedVideoData(BaseModel):
     link: str
-    marks: list[float]
+    marks: List[float]
 
 
 class PredictPhotosResponse(BaseModel):
     predicted_data: List[PredictedPhotoData]
     type: str = "images"
-    
+
 
 class PredictVideoResponse(BaseModel):
     predicted_data: List[PredictedVideoData]

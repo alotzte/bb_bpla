@@ -130,6 +130,7 @@ async def send_messages(
     background_tasks.add_task(
         bot_send_messages,
         message_data.photo_url,
+        message_data.txt_url,
         message_data.classes,
         message_data.confs
     )
@@ -138,6 +139,7 @@ async def send_messages(
 
 async def bot_send_messages(
     photo_url,
+    txt_url,
     classes,
     confs,
 ):
