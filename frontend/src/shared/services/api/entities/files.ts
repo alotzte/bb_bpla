@@ -2,7 +2,7 @@ import type { PaginationParams, PaginationResponse } from '@/shared/lib';
 import { httpClient } from '../http-client';
 
 export type FileStatus = 'processed' | 'ready';
-export type FileType = 'video' | 'image';
+export type FileType = 'video' | 'image' | 'archive';
 
 export interface FilesGetResponse {
   id: number;
@@ -10,6 +10,7 @@ export interface FilesGetResponse {
   status: FileStatus;
   type: FileType;
   txt?: string;
+archive?: string;
   uploadDateTime?: string;
   processedTime?: number;
 }

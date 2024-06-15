@@ -27,6 +27,7 @@ const getStatus: Record<api.FileStatus, string> = {
 const getType: Record<api.FileType, string> = {
   image: 'Изображение',
   video: 'Видео',
+archive: 'Архив',
 };
 
 const columns: ColumnsType<FilesTable> = [
@@ -109,9 +110,16 @@ export const FileTablePage = () => {
     render: (record: FilesTable) =>
       record.status === 'ready' && (
         <Flex vertical justify="center">
-          <Button type="link" onClick={() => openFile(record)}>
+        {(record.type ===  'archive' && record.archive  ) &&
+(
+ <Button href={record.archive} type="link" target="_blank" download>
+              Загрузить архив изображений
+            </Button>
+)}
+
+         {(record.type ===  'image' || record.type ===  'video') &&( <Button type="link" onClick={() => openFile(record)}>
             Подробнее
-          </Button>
+          </Button>)}
           {record.txt && (
             <Button href={record.txt} type="link" target="_blank" download>
               Загрузить TXT файл
