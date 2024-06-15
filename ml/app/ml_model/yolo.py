@@ -67,11 +67,10 @@ class YoloModel:
         txt_path = f"""{
             os.path.join(
                 FULL_PATH_TO_TXT, 'txt', os.path.splitext(filename)[0])}.txt"""
+        os.makedirs(os.path.join(FULL_PATH_TO_TXT, 'img'), exist_ok=True)
+        os.makedirs(os.path.join(FULL_PATH_TO_TXT, 'txt'), exist_ok=True)
 
-        # TODO: если объект нашелся
         res[0].save(link)
-        # res[0].save_txt(txt_path)
-
         self._save_txt(txt_path, res)
 
         photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos')
@@ -83,7 +82,7 @@ class YoloModel:
         def log_response(future):
             try:
                 response = future.result()
-                logger.warning(response)
+                logger.warning(f"tg_bot response: {response}")
             except Exception as exc:
                 logger.error(f'Error sending data to TG bot: {exc}')
 
@@ -91,6 +90,7 @@ class YoloModel:
 
         os.remove(link)
         os.remove(txt_path)
+
         return {
             'link': photo_url,
             'txt_path': txt_url,
@@ -224,7 +224,8 @@ class YoloModel:
             if os.path.isdir(item_path):
                 inner_folder = item_path
                 break
-        img_link, txt_link, processed_milliseconds = self.predict_folder(inner_folder)
+
+        img_link, txt_link, processed_milliseconds = self.predict_folder(inner_folder or extract_folder)
         # заархивировать фото, txt
         img_archive_path = '/app/ml_model/temp_archive/archive_upd.zip'
         txt_archive_path = '/app/ml_model/temp_archive/archive_txt.zip'
