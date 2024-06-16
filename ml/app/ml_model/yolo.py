@@ -36,9 +36,11 @@ class YoloModel:
         start_time = time.time()
         for res in self.model.predict(
             path,
-            conf=0.5,
+            conf=0.25,
             stream=True,
-            imgsz=(240, 240),  # attention!
+            augment=True,
+            iou=0.1,
+            agnostic_nms=True
         ):
             img, txt = os.path.join(FULL_PATH_TO_TXT, 'img'), os.path.join(FULL_PATH_TO_TXT, 'txt')
             os.makedirs(img, exist_ok=True)
@@ -60,9 +62,11 @@ class YoloModel:
         width, height = img.size
         res = self.model.predict(
             img,
-            conf=0.5,
-            imgsz=(320, 320),
-        )  # TODO augment
+            conf=0.25,
+            augment=True,
+            iou=0.1,
+            agnostic_nms=True
+        )
 
         link = f"""{
             os.path.join(
@@ -77,8 +81,8 @@ class YoloModel:
         res[0].save(link)
         self._save_txt(txt_path, res)
 
-        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos', public=False)
-        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts', public=False)
+        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos', public=True)
+        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts', public=True)
 
         with ThreadPoolExecutor() as executor:
             future = executor.submit(self.send_photo_data_to_tg_bot, res, photo_url, txt_url)
@@ -175,10 +179,11 @@ class YoloModel:
         start_time = time.time()
         for frame_number, r in enumerate(self.model.predict(
             video_url,
-            conf=0.5,
+            conf=0.25,
             stream=True,
-            imgsz=(240, 240), # attention!
             stream_buffer=True,
+            iou=0.1,
+            agnostic_nms=True
         )):
             frame = r.orig_img 
             if len(r.boxes.xywh) > 0:
@@ -201,7 +206,7 @@ class YoloModel:
 
         logger.warning(f'Start uploading {saved_video_path}')
         upd_video_url = upload_file_to_s3(
-            saved_video_path, 'bb-bpla', 'upd_videos', public=False
+            saved_video_path, 'bb-bpla', 'upd_videos', public=True
         )
         logger.warning(f'End uploading {saved_video_path}')
         try:
@@ -240,8 +245,8 @@ class YoloModel:
         self.zip_folder(img_link, img_archive_path)
         self.zip_folder(txt_link, txt_archive_path)
         # загрузить на с3 фото и txt
-        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos', public=False)
-        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts', public=False)
+        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos', public=True)
+        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts', public=True)
         # удалить архив
 
         shutil.rmtree(extract_folder)

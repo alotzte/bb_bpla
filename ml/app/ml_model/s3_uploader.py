@@ -20,7 +20,7 @@ elif S3_TYPE == 'digitalocean':
     SPACE_NAME = os.getenv("DO_SPACE_NAME")
     REGION_NAME = os.getenv("DO_REGION_NAME")
     SERVICE_NAME = os.getenv("DO_SERVICE_NAME")
-    ENDPOINT_URL = f'http://{REGION_NAME}{SERVICE_NAME}'
+    ENDPOINT_URL = f'https://{REGION_NAME}.{SERVICE_NAME}'
 
 s3_client = boto3.client('s3',
                          region_name=REGION_NAME,
@@ -46,7 +46,6 @@ def upload_file_to_s3(file_name, bucket, data_type, object_name=None, public=Tru
         object_name = os.path.basename(file_name)
     object_name = f"{_get_current_time()}/{data_type}/{object_name}"
 
-    # Определение Content-Type файла
     content_type, _ = mimetypes.guess_type(file_name)
     if data_type == 'upd_videos':
         content_type = 'video/webm'
@@ -67,15 +66,10 @@ def upload_file_to_s3(file_name, bucket, data_type, object_name=None, public=Tru
                 ACL='public-read'
             )
 
-        # Генерация предписанной URL-ссылки
-        presigned_url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': bucket, 'Key': object_name},
-            ExpiresIn=expiration
-        )
-        return presigned_url
+        file_url = f"{ENDPOINT_URL}/{bucket}/{object_name}"
+        return file_url
     except Exception as e:
-        logger.warning(f"_______________Ошибка при загрузке файла: {e}")
+        logger.warning(f"Ошибка при загрузке файла: {e}")
         return None
 
 

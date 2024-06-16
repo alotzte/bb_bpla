@@ -32,8 +32,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# model = YoloModel("ml_model/weights/yolov10n.pt")
-model = YoloModel("yolov8n.pt")
+model = YoloModel("ml_model/weights/v9c_res.pt")
+# model = YoloModel("yolov8n.pt")
 
 
 @app.post(
