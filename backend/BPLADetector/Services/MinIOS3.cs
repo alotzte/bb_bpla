@@ -65,7 +65,7 @@ public class MinIOS3 : S3Service, IS3Service
         return uploadedFiles;
     }
 
-    public Task<string> GetPresignedUrlAsync(
+    public async Task<string> GetPresignedUrlAsync(
         string key,
         DateTime? expires,
         string bucketName = MinIOConsts.BucketName)
@@ -77,7 +77,14 @@ public class MinIOS3 : S3Service, IS3Service
             Expires = expires ?? DateTime.Now.AddDays(14)
         };
 
-        return _client.GetPreSignedURLAsync(presignedUrlRequest);
+        var presignedUrl = await _client.GetPreSignedURLAsync(presignedUrlRequest);
+
+        if (presignedUrl.Contains("https:"))
+        {
+            presignedUrl = presignedUrl!.Replace("https:", "http:");
+        }
+
+        return presignedUrl;
     }
 
     public string TransformPresignedUrl(string presignedUrl)
@@ -86,7 +93,7 @@ public class MinIOS3 : S3Service, IS3Service
         {
             return presignedUrl;
         }
-        
+
         if (presignedUrl.Contains("https:"))
         {
             presignedUrl = presignedUrl!.Replace("https:", "http:");

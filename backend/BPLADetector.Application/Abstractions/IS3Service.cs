@@ -1,5 +1,4 @@
 ﻿using BPLADetector.Application.DTO;
-using BPLADetector.Domain.Model;
 
 namespace BPLADetector.Application.Abstractions;
 

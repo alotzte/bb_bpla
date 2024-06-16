@@ -69,19 +69,19 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
             foreach (var uploadedPhoto in processedUploadedPhotos)
             {
                 uploadedPhoto.Status = UploadStatus.Ready;
-            }
 
-            addedProcessedPhotos = processedPhotos.PredictedData
-                .Select(photo => new ProcessedFile
-                {
-                    Type = FileType.Image,
-                    Marks = null,
-                    TxtUrl = photo.TxtPath,
-                    CorrelationId = photo.CorrelationId,
-                    Uri = photo.Link,
-                    Filename = Path.GetFileName(photo.Link)
-                })
-                .ToList();
+                addedProcessedPhotos.AddRange(processedPhotos.PredictedData
+                    .Where(processedPhoto => processedPhoto.CorrelationId == uploadedPhoto.CorrelationId)
+                    .Select(photo => new ProcessedFile
+                    {
+                        Type = FileType.Image,
+                        Marks = null,
+                        TxtUrl = _s3Service.TransformPresignedUrl(photo.TxtPath),
+                        CorrelationId = photo.CorrelationId,
+                        Uri = _s3Service.TransformPresignedUrl(photo.Link),
+                        Filename = uploadedPhoto.Filename
+                    }));
+            }
         }
 
         var uploadedVideos = uploadedFileDtos
@@ -100,7 +100,8 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
         {
             var archive = itemGroups.Single(group => group.Key == FileType.Archive).Single();
 
-            await _httpClient.UploadArchiveAsync(archive.OriginalPresignedUrl, archive.CorrelationId, cancellationToken);
+            await _httpClient.UploadArchiveAsync(archive.OriginalPresignedUrl, archive.CorrelationId,
+                cancellationToken);
         }
 
         _domainRepository.AddRange(addedProcessedPhotos);

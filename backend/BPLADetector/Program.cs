@@ -30,7 +30,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<CloudOptions>(builder.Configuration.GetSection(CloudOptions.Section));
 builder.Services.Configure<DigitalOceanOptions>(builder.Configuration.GetSection(DigitalOceanOptions.Section));
 builder.Services.Configure<MinIOOptions>(builder.Configuration.GetSection(MinIOOptions.Section));
 
@@ -45,8 +44,8 @@ builder.Services.AddHttpClient<IMlHttpClient, MlHttpClient>(client =>
         new Uri(builder.Configuration[$"{MlHttpOptions.Section}:{nameof(MlHttpOptions.BaseUri)}"]!);
 });
 
-builder.Services.AddScoped<IS3Service, MinIOS3>();
-builder.Services.AddScoped<MinIOS3>();
+builder.Services.AddScoped<IS3Service, DigitalOceanS3>();
+// builder.Services.AddScoped<MinIOS3>();
 
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();
 
