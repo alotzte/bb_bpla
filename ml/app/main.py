@@ -33,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # model = YoloModel("ml_model/weights/yolov10n.pt")
-model = YoloModel("ml_model/weights/best_after_clean_init_dataset.pt")
+model = YoloModel("yolov8n.pt")
 
 
 @app.post(
@@ -74,8 +74,12 @@ async def predict_photos(
 
     photos_data = []
     try:
+        logger.warning(photos)
+        logger.warning("КАЖЕТСЯ__________НАЧАЛОСЬ")
         for idx, photo in enumerate(photos.photos):
+            logger.warning(f"{idx} {photo.url}")
             response = requests.get(photo.url)
+            # logger.warning(f"_____________{response.headers['Content-Type']}")
             img = Image.open(io.BytesIO(response.content))
             filename = photo.url.split("/")[-1]
             data = model.predict_photo(img, filename)

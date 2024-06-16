@@ -20,7 +20,7 @@ services:
     networks:
       - back-network
     volumes:
-      - ./ml/app/ml_model:/app/ml_model
+      - ./ml/app:/app
     # deploy:
     #   resources:
     #     reservations:
@@ -82,5 +82,3 @@ services:
 networks:
   back-network:
     driver: bridge
-
-
