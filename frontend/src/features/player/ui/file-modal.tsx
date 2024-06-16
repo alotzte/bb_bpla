@@ -5,7 +5,7 @@ import {
   fileModalClosed,
   resetSelectedId,
 } from '../model';
-import { Flex, Modal, Result } from 'antd';
+import { Button, Empty, Flex, Modal, Result } from 'antd';
 import { useEffect } from 'react';
 import { fileInfoModel } from '@/entities/files';
 import { Player } from './player';
@@ -35,7 +35,7 @@ export const FileModal = () => {
         fileModalClosed();
       }}
       footer={null}
-      width={760}
+      width={file?.type === 'archive' && file.archiveLink ? 360 : 760}
       closeIcon={null}
       loading={isLoading}
     >
@@ -46,12 +46,20 @@ export const FileModal = () => {
             subTitle="Попробуйте повторить запрос чуть позже"
           />
         )}
-        {file &&
-          (file?.type === 'video' ? (
-            <Player file={file} />
-          ) : (
-            <Image src={file?.link} />
-          ))}
+        {file && file.type === 'video' && <Player file={file} />}
+        {file && file.type === 'image' && <Image src={file?.link} />}
+        {file && file.type === 'archive' && (
+          <Empty description="Невозможно отобразить содержимое файла">
+            <Button
+              type="primary"
+              href={file.archiveLink}
+              target="_blank"
+              disabled={!file.archiveLink}
+            >
+              Скачать архив
+            </Button>
+          </Empty>
+        )}
       </Flex>
     </Modal>
   );

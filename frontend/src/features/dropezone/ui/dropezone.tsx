@@ -18,8 +18,6 @@ const imageAccept = {
   'image/tif': [],
   'image/tiff': [],
   'image/webp': [],
- 'application/zip': [],
- 'application/rar': [],
 };
 
 const videoAccept = {
@@ -30,12 +28,22 @@ const videoAccept = {
   'video/webm': [],
 };
 
+const archiveAccept = {
+  'application/zip': [],
+};
+
+const typesAccept: Record<api.FileType, { [key: string]: string[] }> = {
+  archive: archiveAccept,
+  image: imageAccept,
+  video: videoAccept,
+};
+
 export const DropeZone = ({ onDrop, type, fileNames }: DropeZoneProps) => {
   return (
     <Dropzone
       onDrop={(files) => onDrop(files)}
       multiple={type === 'image'}
-      accept={type === 'image' ? imageAccept : videoAccept}
+      accept={typesAccept[type]}
     >
       {({ getRootProps, getInputProps }) => (
         <div {...getRootProps()}>
@@ -69,7 +77,7 @@ const style = {
     padding: '16px',
     textAlign: 'center' as const,
     color: '#505050',
-    marginTop: '24px',
+    margin: '32px 0 8px',
     cursor: 'pointer',
   },
 };

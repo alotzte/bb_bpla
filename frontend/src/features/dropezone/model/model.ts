@@ -1,3 +1,4 @@
+import { filesPaginationModel, pagination$ } from '@/entities/files';
 import { api } from '@/shared/services/api';
 import { message } from 'antd';
 import type { AxiosError } from 'axios';
@@ -35,6 +36,20 @@ sample({
   clock: loadFilesFx.doneData,
   fn: () => 'success',
   target: notificationFx,
+});
+
+sample({
+  clock: loadFilesFx.doneData,
+  source: pagination$,
+  fn: (pagination) => {
+    const { current, pageSize } = pagination;
+    const offset = (current - 1) * pageSize;
+    return {
+      offset,
+      limit: pageSize,
+    };
+  },
+  target: filesPaginationModel.getItems,
 });
 
 sample({

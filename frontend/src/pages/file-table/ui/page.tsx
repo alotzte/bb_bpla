@@ -4,31 +4,34 @@ import {
   pagination$,
   changePagination,
 } from '@/entities/files';
-import type { ColumnsType } from 'antd/es/table';
 import { useUnit } from 'effector-react';
-import { pageUnmounted } from '../model';
+import { getStatus, getType, pageUnmounted } from '../model';
 import { useEffect, useState } from 'react';
-import { Button, Flex, Pagination, Table } from 'antd';
+import {
+  Button,
+  Dropdown,
+  Flex,
+  type MenuProps,
+  Pagination,
+  Table,
+  Typography,
+} from 'antd';
 import { DropezoneModal, dropezoneModalOpened } from '@/features/dropezone';
 import { api } from '@/shared/services/api';
 import { FileModal, fileModalOpened, setSelectedId } from '@/features/player';
-import { Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { DownOutlined, ReloadOutlined, UpOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import { ColumnsType } from 'antd/es/table';
 import { formatTime } from '@/shared/lib/format';
 
 const { Text } = Typography;
 
-const getStatus: Record<api.FileStatus, string> = {
-  processed: 'Обрабатывается',
-  ready: 'Обработано',
-};
-
-const getType: Record<api.FileType, string> = {
-  image: 'Изображение',
-  video: 'Видео',
-archive: 'Архив',
-};
+const Title = styled.div`
+  width: 160px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+`;
 
 const columns: ColumnsType<FilesTable> = [
   { title: 'ID', dataIndex: 'id' },
@@ -87,6 +90,7 @@ export const FileTablePage = () => {
   ]);
 
   const [type, setType] = useState<api.FileType>('image');
+  const [dropdownState, setDropdownState] = useState<boolean>(false);
 
   const openFile = ({ id }: Pick<FilesTable, 'id'>) => {
     setSelectedId(id);
@@ -103,6 +107,26 @@ export const FileTablePage = () => {
     filesPaginationModel.getItems(filesPaginationModel.defaultPagination);
   }, []);
 
+  const uploadClick = (type: api.FileType) => {
+    setType(type);
+    dropezoneModalOpened();
+  };
+
+  const items: MenuProps['items'] = [
+    {
+      key: 'archive',
+      label: <div onClick={() => uploadClick('archive')}>Архив</div>,
+    },
+    {
+      key: 'image',
+      label: <div onClick={() => uploadClick('image')}>Изображение</div>,
+    },
+    {
+      key: 'video',
+      label: <div onClick={() => uploadClick('video')}>Видео</div>,
+    },
+  ];
+
   const actionColumn = {
     title: '',
     key: 'action',
@@ -110,16 +134,9 @@ export const FileTablePage = () => {
     render: (record: FilesTable) =>
       record.status === 'ready' && (
         <Flex vertical justify="center">
-        {(record.type ===  'archive' && record.archive  ) &&
-(
- <Button href={record.archive} type="link" target="_blank" download>
-              Загрузить архив изображений
-            </Button>
-)}
-
-         {(record.type ===  'image' || record.type ===  'video') &&( <Button type="link" onClick={() => openFile(record)}>
+          <Button type="link" onClick={() => openFile(record)}>
             Подробнее
-          </Button>)}
+          </Button>
           {record.txt && (
             <Button href={record.txt} type="link" target="_blank" download>
               Загрузить TXT файл
@@ -133,23 +150,19 @@ export const FileTablePage = () => {
     <div>
       <Flex justify="space-between">
         <Flex gap="small">
-          <Button
-            type="primary"
-            onClick={() => {
-              setType('video');
-              dropezoneModalOpened();
-            }}
+          <Dropdown
+            trigger={['click']}
+            menu={{ items }}
+            onOpenChange={setDropdownState}
           >
-            Загрузить видео
-          </Button>
-          <Button
-            onClick={() => {
-              setType('image');
-              dropezoneModalOpened();
-            }}
-          >
-            Загрузить фото
-          </Button>
+            <Button
+              type={'primary'}
+              icon={dropdownState ? <UpOutlined /> : <DownOutlined />}
+              iconPosition="end"
+            >
+              Загрузить
+            </Button>
+          </Dropdown>
         </Flex>
         <Button
           type="primary"
@@ -189,10 +202,3 @@ export const FileTablePage = () => {
     </div>
   );
 };
-
-const Title = styled.div`
-  width: 160px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-`;
