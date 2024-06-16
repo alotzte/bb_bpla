@@ -15,6 +15,7 @@ import {
   Pagination,
   Table,
   Typography,
+  Tooltip,
 } from 'antd';
 import { DropezoneModal, dropezoneModalOpened } from '@/features/dropezone';
 import { api } from '@/shared/services/api';
@@ -37,7 +38,11 @@ const columns: ColumnsType<FilesTable> = [
   { title: 'ID', dataIndex: 'id' },
   {
     title: 'Имя',
-    render: (_, record) => <Title>{record.title}</Title>,
+    render: (_, record) => (
+      <Tooltip title={record.title} placement="topLeft">
+        <Title>{record.title}</Title>
+      </Tooltip>
+    ),
     width: 180,
   },
   {
