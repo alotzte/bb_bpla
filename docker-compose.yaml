@@ -42,13 +42,16 @@ services:
       - back-network
 
   netback:
-    image: bpla:0.0.22
+    build:
+      context: ./backend
+      dockerfile: ./BPLADetector/Dockerfile
+    image: bpla
     ports:
       - "8080:80"
     environment:
       ASPNETCORE_URLS: "http://*:80"
     volumes:
-      - "/home/config/appsettings.json:/app/appsettings.json"
+      - "~/bb-config/appsettings.json:/app/appsettings.json"
     networks:
       - back-network
   
@@ -58,27 +61,16 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "Bpla100624_pong"
     volumes:
-      - "/home/data:/var/lib/postgresql/data"
+      - "~/bb-config/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "db-data:/var/lib/postgresql/data"
     ports:
       - "16543:5432"
-    networks:
-      - back-network
-
-
-  minio:
-    image: quay.io/minio/minio:latest
-    ports:
-      - "19000:9000"
-      - "19001:9001"
-    environment: 
-      MINIO_ROOT_USER: "ROOT"
-      MINIO_ROOT_PASSWORD: "minio_bpla53"
-    volumes:
-      - "/home/minio:/data"
-    command: server --console-address ":9001" /data
     networks:
       - back-network
 
 networks:
   back-network:
     driver: bridge
+
+volumes:
+  db-data:
