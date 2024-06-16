@@ -1,7 +1,7 @@
 import os
 
 import requests
-from ultralytics import YOLOv10
+from ultralytics import YOLO
 import cv2
 import shutil
 from fastapi.concurrency import run_in_threadpool
@@ -11,7 +11,7 @@ import time
 from PIL import Image
 import zipfile
 
-from .s3_uploader import upload_file_to_s3
+from .s3_uploader import upload_file_to_s3, download_file_from_s3
 
 
 BACKEND_HOST = os.getenv("BACKEND_HOST")
@@ -25,7 +25,11 @@ VERY_SECRET_KEY = os.getenv("VERY_SECRET_KEY")
 
 class YoloModel:
     def __init__(self, model_path):
-        self.model = YOLOv10(model_path)
+        # model_url = 'https://bb-bpla.fra1.digitaloceanspaces.com/weights/v9c_res_dynamic.engine'
+        # output_path = '/app/ml_model/weights/bb_bpla.engine'
+        # download_file_from_s3(model_url, output_path)
+        # self.model = YOLO(output_path)
+        self.model = YOLO(model_path)
 
     def predict_folder(self, path):
 
@@ -73,8 +77,8 @@ class YoloModel:
         res[0].save(link)
         self._save_txt(txt_path, res)
 
-        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos')
-        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts')
+        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos', public=False)
+        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts', public=False)
 
         with ThreadPoolExecutor() as executor:
             future = executor.submit(self.send_photo_data_to_tg_bot, res, photo_url, txt_url)
@@ -174,6 +178,7 @@ class YoloModel:
             conf=0.5,
             stream=True,
             imgsz=(240, 240), # attention!
+            stream_buffer=True,
         )):
             frame = r.orig_img 
             if len(r.boxes.xywh) > 0:
@@ -196,15 +201,19 @@ class YoloModel:
 
         logger.warning(f'Start uploading {saved_video_path}')
         upd_video_url = upload_file_to_s3(
-            saved_video_path, 'bb-bpla', 'upd_videos'
+            saved_video_path, 'bb-bpla', 'upd_videos', public=False
         )
         logger.warning(f'End uploading {saved_video_path}')
         try:
             shutil.rmtree('/app/runs/detect')
         except Exception as e:
             logger.warning(f'{e}\n/app/runs/detect not found')
-        os.remove(saved_video_path)
-        os.remove(object_fullname)
+        
+        try:
+            os.remove(saved_video_path)
+            os.remove(object_fullname)
+        except Exception as e:
+            logger.warning(f'{e}\n{object_fullname} not found')
         return upd_video_url, timestamps, end_time
 
     def sync_predict_photos_archive(self, archive_url):
@@ -231,8 +240,8 @@ class YoloModel:
         self.zip_folder(img_link, img_archive_path)
         self.zip_folder(txt_link, txt_archive_path)
         # загрузить на с3 фото и txt
-        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos')
-        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts')
+        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos', public=False)
+        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts', public=False)
         # удалить архив
 
         shutil.rmtree(extract_folder)

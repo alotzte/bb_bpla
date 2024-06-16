@@ -6,9 +6,10 @@ COPY /app/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
+
 COPY ./app .
 
-# CMD ["python", "main.py"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 # CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "static/key.pem", "--ssl-certfile", "static/cert.pem"]
 # uvicorn.exe main:app --host 127.0.0.1 --port 8080 --ssl-keyfile static/key.pem --ssl-certfile static/cert.pem
