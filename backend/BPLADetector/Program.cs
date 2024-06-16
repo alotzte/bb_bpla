@@ -31,7 +31,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<DigitalOceanOptions>(builder.Configuration.GetSection(DigitalOceanOptions.Section));
-builder.Services.Configure<MinIOOptions>(builder.Configuration.GetSection(MinIOOptions.Section));
 
 builder.Services.Configure<MlHttpOptions>(builder.Configuration.GetSection(MlHttpOptions.Section));
 
@@ -45,7 +44,6 @@ builder.Services.AddHttpClient<IMlHttpClient, MlHttpClient>(client =>
 });
 
 builder.Services.AddScoped<IS3Service, DigitalOceanS3>();
-// builder.Services.AddScoped<MinIOS3>();
 
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();
 

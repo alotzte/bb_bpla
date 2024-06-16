@@ -2,24 +2,19 @@
 using BPLADetector.Domain.Enums;
 using BPLADetector.Domain.Model;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace BPLADetector.Application.Handlers.Upload.UploadFile;
 
 public class UploadFileHandler : IRequestHandler<UploadFileRequest>
 {
-    private readonly ILogger<UploadFileHandler> _logger;
     private readonly IS3Service _s3Service;
     private readonly IDomainRepository _domainRepository;
     private readonly IMlHttpClient _httpClient;
 
-    public UploadFileHandler(
-        ILogger<UploadFileHandler> logger,
-        IS3Service s3Service,
+    public UploadFileHandler(IS3Service s3Service,
         IDomainRepository domainRepository,
         IMlHttpClient httpClient)
     {
-        _logger = logger;
         _s3Service = s3Service;
         _domainRepository = domainRepository;
         _httpClient = httpClient;
@@ -76,9 +71,9 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
                     {
                         Type = FileType.Image,
                         Marks = null,
-                        TxtUrl = _s3Service.TransformPresignedUrl(photo.TxtPath),
+                        TxtUrl = photo.TxtPath,
                         CorrelationId = photo.CorrelationId,
-                        Uri = _s3Service.TransformPresignedUrl(photo.Link),
+                        Uri = photo.Link,
                         Filename = uploadedPhoto.Filename
                     }));
             }
