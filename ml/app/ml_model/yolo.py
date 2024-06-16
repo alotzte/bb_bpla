@@ -34,7 +34,7 @@ class YoloModel:
             path,
             conf=0.5,
             stream=True,
-            imgsz=(240, 240), # attention!
+            imgsz=(240, 240),  # attention!
         ):
             img, txt = os.path.join(FULL_PATH_TO_TXT, 'img'), os.path.join(FULL_PATH_TO_TXT, 'txt')
             os.makedirs(img, exist_ok=True)
@@ -45,7 +45,7 @@ class YoloModel:
 
             txt_path = f"""{
                 os.path.join(txt, os.path.splitext(os.path.basename(res.path))[0])}.txt"""
-            
+
             res.save(link)
             self._save_txt(txt_path, res, is_video=False)
         end_time = time.time() - start_time
@@ -95,7 +95,7 @@ class YoloModel:
             'link': photo_url,
             'txt_path': txt_url,
             }
-    
+
     def send_photo_data_to_tg_bot(
         self,
         res,
@@ -130,7 +130,6 @@ class YoloModel:
                 for idx, prediction in enumerate(result.boxes.xywhn):
                     cls = int(result.boxes.cls[idx].item())
                     file.write(f"{cls} {prediction[0].item()} {prediction[1].item()} {prediction[2].item()} {prediction[3].item()}\n")
-
 
     def _get_video_info(self, video_path):
         cap = cv2.VideoCapture(video_path)
@@ -299,7 +298,7 @@ class YoloModel:
 
         elif data_type == 'archive':
             photo_url, txt_url, processed_milliseconds = await self.predict_photos_archive(url)
-            url = f'{BACKEND_HOST}:{BACKEND_PORT}/api/v1/upload/processed-video'
+            url = f'{BACKEND_HOST}:{BACKEND_PORT}/api/v1/upload/processed-archive'
 
             headers = {
                     "Content-Type": "application/json",
@@ -307,10 +306,16 @@ class YoloModel:
                 }
 
             data = {
-                    "photo_url": photo_url,
-                    "txt_url": txt_url,
+                    "link": photo_url,
+                    "txt": txt_url,
                     "processed_milliseconds": processed_milliseconds
                 }
             logger.warning(f'data: {data}, headers: {headers}')
+            ans = requests.post(
+                    url=url,
+                    headers=headers,
+                    json=data
+                )
+            logger.warning(f'backend answer code archive: {ans}')
         else:
             raise Exception('unknown data type')
