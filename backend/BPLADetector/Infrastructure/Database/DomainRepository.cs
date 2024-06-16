@@ -26,7 +26,7 @@ public class DomainRepository : IDomainRepository
             .Where(uploadedFile => uploadedFile.CorrelationId == correlationId)
             .FirstOrDefaultAsync(cancellationToken);
     }
-    
+
     public Task<List<UploadedFile>> GetUploadedFilesByCorrelationId(
         IEnumerable<Guid> correlationIds,
         CancellationToken cancellationToken = default)
@@ -81,17 +81,17 @@ public class DomainRepository : IDomainRepository
         await _context.AddAsync(item!, cancellationToken);
     }
 
-    public void AddRange<T>(IEnumerable<T> items) where T : class
+    public void AddRange<T>(IEnumerable<T> items) where T : class, IDomainModel
     {
         _context.Set<T>().AddRange(items);
     }
 
-    public void Update<T>(T item) where T : class
+    public void Update<T>(T item) where T : class, IDomainModel
     {
         _context.Set<T>().Update(item);
     }
 
-    public void UpdateRange<T>(IEnumerable<T> items) where T : class
+    public void UpdateRange<T>(IEnumerable<T> items) where T : class, IDomainModel
     {
         _context.Set<T>().UpdateRange(items);
     }

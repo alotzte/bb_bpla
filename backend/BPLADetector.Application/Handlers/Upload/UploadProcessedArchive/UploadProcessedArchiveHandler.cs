@@ -24,9 +24,7 @@ public class UploadProcessedArchiveHandler : IRequestHandler<UploadProcessedArch
             uploadFile.Status = UploadStatus.Ready;
         }
         
-        uploadFile!.Status = UploadStatus.Ready;
-        
-        var addedProcessedVideo = new ProcessedFile
+        var addedProcessedArchive = new ProcessedFile
         {
             UploadDatetime = DateTime.UtcNow,
             // TODO: временный костыль
@@ -38,7 +36,7 @@ public class UploadProcessedArchiveHandler : IRequestHandler<UploadProcessedArch
             ProcessedMilliseconds = request.ProcessedMilliseconds
         };
 
-        await _repository.AddAsync(addedProcessedVideo, cancellationToken);
+        await _repository.AddAsync(addedProcessedArchive, cancellationToken);
         await _repository.SaveChangesAsync(cancellationToken);
     }
 }

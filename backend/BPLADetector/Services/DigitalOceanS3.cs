@@ -29,13 +29,13 @@ public class DigitalOceanS3 : S3Service, IS3Service
         _options = options.Value;
     }
 
-    public async Task<List<UploadedFile>> PutObjectsAsync(
+    public async Task<List<UploadedFileDto>> PutObjectsAsync(
         IEnumerable<UploadFileItem> files,
         CancellationToken cancellationToken = default)
     {
         var utcNow = DateTime.UtcNow;
 
-        var uploadedFiles = new List<UploadedFile>();
+        var uploadedFiles = new List<UploadedFileDto>();
 
         foreach (var file in files)
         {
@@ -47,11 +47,13 @@ public class DigitalOceanS3 : S3Service, IS3Service
                 DigitalOceanConsts.DigitalOceanBucketName,
                 cancellationToken);
 
-            uploadedFiles.Add(new UploadedFile
+            var presignedUrl = GetFileUri(key).ToString(); 
+            uploadedFiles.Add(new UploadedFileDto
             {
                 UploadDatetime = utcNow,
                 Filename = file.Filename,
-                Uri = GetFileUri(key).ToString(),
+                OriginalPresignedUrl = presignedUrl, 
+                Uri = presignedUrl,
                 Status = UploadStatus.Processed,
                 Type = FileTypeHelper.GetFileType(file.Filename)
             });
@@ -60,6 +62,16 @@ public class DigitalOceanS3 : S3Service, IS3Service
         }
 
         return uploadedFiles;
+    }
+
+    public string TransformPresignedUrl(string presignedUrl)
+    {
+        if (_options.NeedTransformUrl is false)
+        {
+            return presignedUrl;
+        }
+
+        throw new NotImplementedException();
     }
 
     public async Task MultiPartUploadAsync(

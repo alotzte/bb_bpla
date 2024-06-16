@@ -5,7 +5,6 @@ using BPLADetector.Configuration;
 using BPLADetector.Constants;
 using BPLADetector.Domain.Enums;
 using BPLADetector.Domain.Helpers;
-using BPLADetector.Domain.Model;
 using Microsoft.Extensions.Options;
 
 namespace BPLADetector.Services;
@@ -14,12 +13,10 @@ public class MinIOS3 : S3Service, IS3Service
 {
     private readonly MinIOOptions _options;
     private readonly ILogger<MinIOS3> _logger;
-    private readonly IDomainRepository _domainRepository;
 
     public MinIOS3(
         IOptions<MinIOOptions> options,
-        ILogger<MinIOS3> logger,
-        IDomainRepository domainRepository) : base(
+        ILogger<MinIOS3> logger) : base(
         logger,
         options.Value.AccessKey,
         options.Value.SecretKey,
@@ -27,16 +24,15 @@ public class MinIOS3 : S3Service, IS3Service
     {
         _options = options.Value;
         _logger = logger;
-        _domainRepository = domainRepository;
     }
 
-    public async Task<List<UploadedFile>> PutObjectsAsync(
+    public async Task<List<UploadedFileDto>> PutObjectsAsync(
         IEnumerable<UploadFileItem> files,
         CancellationToken cancellationToken = default)
     {
         var utcNow = DateTime.UtcNow;
 
-        var uploadedFiles = new List<UploadedFile>();
+        var uploadedFiles = new List<UploadedFileDto>();
 
         _logger.LogInformation($"Received files: {string.Join(",", files.Select(file => file.Filename))}");
 
@@ -53,13 +49,14 @@ public class MinIOS3 : S3Service, IS3Service
                 cancellationToken);
 
             var presignedUrl = await GetPresignedUrlAsync(key, DateTime.Now.AddDays(14));
-            _logger.LogInformation("=====\nPresigned URL: {presignedUrl}\n=====", presignedUrl);
+            _logger.LogInformation("=====\nOriginal presigned URL: {presignedUrl}\n=====", presignedUrl);
 
-            uploadedFiles.Add(new UploadedFile
+            uploadedFiles.Add(new UploadedFileDto
             {
                 UploadDatetime = utcNow,
                 Filename = file.Filename,
-                Uri = presignedUrl,
+                OriginalPresignedUrl = presignedUrl,
+                Uri = TransformPresignedUrl(presignedUrl),
                 Status = UploadStatus.Processed,
                 Type = FileTypeHelper.GetFileType(file.Filename)
             });
@@ -68,7 +65,7 @@ public class MinIOS3 : S3Service, IS3Service
         return uploadedFiles;
     }
 
-    public async Task<string> GetPresignedUrlAsync(
+    public Task<string> GetPresignedUrlAsync(
         string key,
         DateTime? expires,
         string bucketName = MinIOConsts.BucketName)
@@ -80,8 +77,16 @@ public class MinIOS3 : S3Service, IS3Service
             Expires = expires ?? DateTime.Now.AddDays(14)
         };
 
-        var presignedUrl = await _client.GetPreSignedURLAsync(presignedUrlRequest);
+        return _client.GetPreSignedURLAsync(presignedUrlRequest);
+    }
 
+    public string TransformPresignedUrl(string presignedUrl)
+    {
+        if (_options.NeedTransformUrl is false)
+        {
+            return presignedUrl;
+        }
+        
         if (presignedUrl.Contains("https:"))
         {
             presignedUrl = presignedUrl!.Replace("https:", "http:");

@@ -1,4 +1,5 @@
-﻿using BPLADetector.Application.Handlers.Upload.UploadFile;
+﻿using BPLADetector.Application.Abstractions;
+using BPLADetector.Application.Handlers.Upload.UploadFile;
 using BPLADetector.Application.Handlers.Upload.UploadProcessedArchive;
 using BPLADetector.Application.Handlers.Upload.UploadProcessedVideo;
 using BPLADetector.Infrastructure.Extensions;
@@ -13,11 +14,13 @@ public class UploadController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<UploadController> _logger;
+    private readonly IS3Service _s3Service;
 
-    public UploadController(ILogger<UploadController> logger, IMediator mediator)
+    public UploadController(ILogger<UploadController> logger, IMediator mediator, IS3Service s3Service)
     {
         _logger = logger;
         _mediator = mediator;
+        _s3Service = s3Service;
     }
 
     [HttpPost]
@@ -40,7 +43,7 @@ public class UploadController : ControllerBase
     {
         _logger.LogInformation("Uploaded processed file.\nUrl: {url}.\nMarks: [{marks}]", requestDto.Link, string.Join(", ", requestDto.Marks ?? Array.Empty<float>()));
         
-        await _mediator.Send(new UploadProcessedVideoRequest(requestDto.Link, requestDto.Marks, correlationId, requestDto.ProcessedMilliseconds), cancellationToken);
+        await _mediator.Send(new UploadProcessedVideoRequest(_s3Service.TransformPresignedUrl(requestDto.Link), requestDto.Marks, correlationId, requestDto.ProcessedMilliseconds), cancellationToken);
 
         return Ok();
     }
@@ -53,7 +56,7 @@ public class UploadController : ControllerBase
     {
         _logger.LogInformation("Uploaded processed file.\nUrl: {url}.", requestDto.Link);
         
-        await _mediator.Send(new UploadProcessedArchiveRequest(requestDto.Link, requestDto.Txt, correlationId, requestDto.ProcessedMilliseconds), cancellationToken);
+        await _mediator.Send(new UploadProcessedArchiveRequest(_s3Service.TransformPresignedUrl(requestDto.Link), _s3Service.TransformPresignedUrl(requestDto.Txt), correlationId, requestDto.ProcessedMilliseconds), cancellationToken);
 
         return Ok();
     }

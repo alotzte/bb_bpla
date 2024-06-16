@@ -5,6 +5,8 @@ namespace BPLADetector.Application.Abstractions;
 
 public interface IS3Service
 {
-    Task<List<UploadedFile>> PutObjectsAsync(IEnumerable<UploadFileItem> files,
+    Task<List<UploadedFileDto>> PutObjectsAsync(IEnumerable<UploadFileItem> files,
         CancellationToken cancellationToken = default);
+
+    string TransformPresignedUrl(string presignedUrl);
 }

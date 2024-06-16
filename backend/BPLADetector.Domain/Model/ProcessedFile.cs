@@ -2,7 +2,7 @@
 
 namespace BPLADetector.Domain.Model;
 
-public class ProcessedFile
+public class ProcessedFile : IDomainModel
 {
     public int Id { get; set; }
     public DateTime UploadDatetime { get; set; }

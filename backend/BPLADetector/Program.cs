@@ -45,7 +45,7 @@ builder.Services.AddHttpClient<IMlHttpClient, MlHttpClient>(client =>
         new Uri(builder.Configuration[$"{MlHttpOptions.Section}:{nameof(MlHttpOptions.BaseUri)}"]!);
 });
 
-builder.Services.AddScoped<IS3Service, DigitalOceanS3>();
+builder.Services.AddScoped<IS3Service, MinIOS3>();
 builder.Services.AddScoped<MinIOS3>();
 
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();

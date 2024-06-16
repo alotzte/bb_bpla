@@ -27,19 +27,31 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
 
     public async Task Handle(UploadFileRequest request, CancellationToken cancellationToken)
     {
-        var uploadedFiles = await _s3Service.PutObjectsAsync(request.Items, cancellationToken);
+        var uploadedFileDtos = await _s3Service.PutObjectsAsync(request.Items, cancellationToken);
+
+        var uploadedFiles = uploadedFileDtos
+            .Select(dto => new UploadedFile
+            {
+                Status = dto.Status,
+                CorrelationId = dto.CorrelationId,
+                Filename = dto.Filename,
+                Uri = dto.Uri,
+                Type = dto.Type,
+                UploadDatetime = dto.UploadDatetime
+            })
+            .ToList();
 
         _domainRepository.AddRange(uploadedFiles);
         await _domainRepository.SaveChangesAsync(cancellationToken);
 
-        var itemGroups = uploadedFiles
+        var itemGroups = uploadedFileDtos
             .GroupBy(file => file.Type);
-        
-        var uploadedPhotoItems = uploadedFiles
+
+        var uploadedPhotoItems = uploadedFileDtos
             .Where(file => file.Type == FileType.Image)
             .Select(file => new MlPhotoRequestItem
             {
-                Url = file.Uri,
+                Url = file.OriginalPresignedUrl,
                 CorrelationId = file.CorrelationId
             })
             .ToList();
@@ -72,14 +84,14 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
                 .ToList();
         }
 
-        var uploadedVideos = uploadedFiles
+        var uploadedVideos = uploadedFileDtos
             .Where(file => file.Type == FileType.Video)
             .ToList();
 
         if (uploadedVideos.Any())
         {
             await _httpClient.UploadVideosAsync(
-                uploadedVideos.Select(video => video.Uri),
+                uploadedVideos.Select(video => video.OriginalPresignedUrl),
                 uploadedVideos.First().CorrelationId,
                 cancellationToken);
         }
@@ -87,10 +99,10 @@ public class UploadFileHandler : IRequestHandler<UploadFileRequest>
         if (itemGroups.Any(group => group.Key == FileType.Archive))
         {
             var archive = itemGroups.Single(group => group.Key == FileType.Archive).Single();
-            
-            await _httpClient.UploadArchiveAsync(archive.Uri, archive.CorrelationId, cancellationToken);
+
+            await _httpClient.UploadArchiveAsync(archive.OriginalPresignedUrl, archive.CorrelationId, cancellationToken);
         }
-        
+
         _domainRepository.AddRange(addedProcessedPhotos);
         await _domainRepository.SaveChangesAsync(cancellationToken);
     }
