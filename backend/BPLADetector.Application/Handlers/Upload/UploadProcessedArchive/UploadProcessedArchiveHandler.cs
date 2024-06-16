@@ -27,8 +27,7 @@ public class UploadProcessedArchiveHandler : IRequestHandler<UploadProcessedArch
         var addedProcessedArchive = new ProcessedFile
         {
             UploadDatetime = DateTime.UtcNow,
-            // TODO: временный костыль
-            Type = FileType.Image,
+            Type = FileType.Archive,
             Uri = request.Link,
             TxtUrl = request.Txt,
             Filename = filename,
