@@ -82,6 +82,7 @@ const Container = styled.div`
   background: rgba(0, 0, 0);
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.2);
   border-radius: 2%;
+  height: 360px;
 `;
 
 const Mark = styled.div`
