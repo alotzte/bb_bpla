@@ -39,7 +39,7 @@ const columns: ColumnsType<FilesTable> = [
   {
     title: 'Имя',
     render: (_, record) => (
-      <Tooltip title={record.title}>
+      <Tooltip title={record.title} placement="topLeft">
         <Title>{record.title}</Title>
       </Tooltip>
     ),
