@@ -77,8 +77,8 @@ class YoloModel:
         res[0].save(link)
         self._save_txt(txt_path, res)
 
-        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos', public=False)
-        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts', public=False)
+        photo_url = upload_file_to_s3(link, 'bb-bpla', 'upd_photos', public=True)
+        txt_url = upload_file_to_s3(txt_path, 'bb-bpla', 'upd_txts', public=True)
 
         with ThreadPoolExecutor() as executor:
             future = executor.submit(self.send_photo_data_to_tg_bot, res, photo_url, txt_url)
@@ -201,7 +201,7 @@ class YoloModel:
 
         logger.warning(f'Start uploading {saved_video_path}')
         upd_video_url = upload_file_to_s3(
-            saved_video_path, 'bb-bpla', 'upd_videos', public=False
+            saved_video_path, 'bb-bpla', 'upd_videos', public=True
         )
         logger.warning(f'End uploading {saved_video_path}')
         try:
@@ -240,8 +240,8 @@ class YoloModel:
         self.zip_folder(img_link, img_archive_path)
         self.zip_folder(txt_link, txt_archive_path)
         # загрузить на с3 фото и txt
-        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos', public=False)
-        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts', public=False)
+        photo_url = upload_file_to_s3(img_archive_path, 'bb-bpla', 'upd_photos', public=True)
+        txt_url = upload_file_to_s3(txt_archive_path, 'bb-bpla', 'upd_txts', public=True)
         # удалить архив
 
         shutil.rmtree(extract_folder)
