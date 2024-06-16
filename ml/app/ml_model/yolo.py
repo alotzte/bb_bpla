@@ -40,7 +40,8 @@ class YoloModel:
             stream=True,
             augment=True,
             iou=0.1,
-            agnostic_nms=True
+            agnostic_nms=True,
+            device=0,
         ):
             img, txt = os.path.join(FULL_PATH_TO_TXT, 'img'), os.path.join(FULL_PATH_TO_TXT, 'txt')
             os.makedirs(img, exist_ok=True)
@@ -65,7 +66,8 @@ class YoloModel:
             conf=0.25,
             augment=True,
             iou=0.1,
-            agnostic_nms=True
+            agnostic_nms=True,
+            device=0,
         )
 
         link = f"""{
@@ -183,7 +185,8 @@ class YoloModel:
             stream=True,
             stream_buffer=True,
             iou=0.1,
-            agnostic_nms=True
+            agnostic_nms=True,
+            device=0,
         )):
             frame = r.orig_img 
             if len(r.boxes.xywh) > 0:
