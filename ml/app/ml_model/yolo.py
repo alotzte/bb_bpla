@@ -36,9 +36,11 @@ class YoloModel:
         start_time = time.time()
         for res in self.model.predict(
             path,
-            conf=0.5,
+            conf=0.25,
             stream=True,
-            imgsz=(240, 240),  # attention!
+            augment=True,
+            iou=0.1,
+            agnostic_nms=True
         ):
             img, txt = os.path.join(FULL_PATH_TO_TXT, 'img'), os.path.join(FULL_PATH_TO_TXT, 'txt')
             os.makedirs(img, exist_ok=True)
@@ -60,9 +62,11 @@ class YoloModel:
         width, height = img.size
         res = self.model.predict(
             img,
-            conf=0.5,
-            imgsz=(320, 320),
-        )  # TODO augment
+            conf=0.25,
+            augment=True,
+            iou=0.1,
+            agnostic_nms=True
+        )
 
         link = f"""{
             os.path.join(
@@ -175,10 +179,11 @@ class YoloModel:
         start_time = time.time()
         for frame_number, r in enumerate(self.model.predict(
             video_url,
-            conf=0.5,
+            conf=0.25,
             stream=True,
-            imgsz=(240, 240), # attention!
             stream_buffer=True,
+            iou=0.1,
+            agnostic_nms=True
         )):
             frame = r.orig_img 
             if len(r.boxes.xywh) > 0:
