@@ -30,7 +30,9 @@ services:
     #           capabilities: [ gpu ]
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -40,7 +42,7 @@ services:
       - back-network
 
   netback:
-    image: bpla:0.0.12
+    image: bpla:0.0.22
     ports:
       - "8080:80"
     environment:
@@ -59,6 +61,21 @@ services:
       - "/home/data:/var/lib/postgresql/data"
     ports:
       - "16543:5432"
+    networks:
+      - back-network
+
+
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    environment: 
+      MINIO_ROOT_USER: "ROOT"
+      MINIO_ROOT_PASSWORD: "minio_bpla53"
+    volumes:
+      - "/home/minio:/data"
+    command: server --console-address ":9001" /data
     networks:
       - back-network
 

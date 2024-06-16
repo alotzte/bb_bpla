@@ -62,8 +62,8 @@ async def get_default_settings():
     sample_objects = [
         {"id": 1, "name": "БПЛА коптерного типа", "checked": True, "inputData": 50},
         {"id": 2, "name": "Самолет", "checked": False, "inputData": 50},
-        {"id": 3, "name": "Вертолет", "checked": True, "inputData": 50},
-        {"id": 4, "name": "Птица", "checked": True, "inputData": 50},
+        {"id": 3, "name": "Вертолет", "checked": False, "inputData": 50},
+        {"id": 4, "name": "Птица", "checked": False, "inputData": 50},
         {"id": 5, "name": "БПЛА самолетного типа", "checked": True, "inputData": 50},
     ]
     return sample_objects
@@ -126,7 +126,7 @@ async def send_messages(
     authorization: str = request.headers.get("Authorization")
     if authorization != VERY_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Иди лесом")
-    
+
     background_tasks.add_task(
         bot_send_messages,
         message_data.photo_url,
@@ -149,7 +149,7 @@ async def bot_send_messages(
                 logger.warning(int(classes[i]) + 1)
                 logger.warning(confs)
                 settings_conf = await get_conf_by_class(data['telegram_id'], int(classes[i]))
-                if confs[i]*100 <= settings_conf:
+                if confs[i]*100 >= settings_conf:
                     await bot_send_message(
                         bot,
                         data['telegram_id'],
