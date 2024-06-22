@@ -33,7 +33,7 @@ class YoloModel:
 
     def predict_folder(self, path):
 
-        start_time = time.time()
+        total = 0
         for res in self.model.predict(
             path,
             conf=0.25,
@@ -55,9 +55,11 @@ class YoloModel:
 
             res.save(link)
             self._save_txt(txt_path, res, is_video=False)
-        end_time = time.time() - start_time
+            for k, v in res.speed.items():
+                total += v
+        end_time = total
 
-        return img, txt, int(end_time * 1000) 
+        return img, txt, int(end_time)
 
     def predict_photo(self, img, filename):
         width, height = img.size
@@ -178,7 +180,7 @@ class YoloModel:
         saved_video_path = f'/app/ml_model/{object_name}.webm'
         out = cv2.VideoWriter(saved_video_path, fourcc, fps, (width, height))
 
-        start_time = time.time()
+        total = 0
         for frame_number, r in enumerate(self.model.predict(
             video_url,
             conf=0.25,
@@ -203,9 +205,11 @@ class YoloModel:
                 else:
                     missed_frames = 0
             out.write(frame)
+            for k, v in r.speed.items():
+                total += v
         out.release()
 
-        end_time = time.time() - start_time
+        end_time = total
 
         logger.warning(f'Start uploading {saved_video_path}')
         upd_video_url = upload_file_to_s3(
@@ -301,7 +305,7 @@ class YoloModel:
             data = {
                     "link": link,
                     "marks": timestamps,
-                    "processed_milliseconds": int(end_time * 1000)
+                    "processed_milliseconds": int(end_time)
                 }
             logger.warning(data)
 
