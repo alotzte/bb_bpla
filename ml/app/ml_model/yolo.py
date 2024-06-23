@@ -25,13 +25,13 @@ VERY_SECRET_KEY = os.getenv("VERY_SECRET_KEY")
 
 class YoloModel:
     def __init__(self, model_path):
-        # model_url = 'https://bb-bpla.fra1.digitaloceanspaces.com/weights/v9c_res_dynamic.engine'
-        # output_path = '/app/ml_model/weights/bb_bpla.engine'
-        # download_file_from_s3(model_url, output_path)
+        model_url = 'https://bb-bpla.fra1.digitaloceanspaces.com/v9c_res.engine'
+        output_path = '/app/ml_model/weights/v9c_res.engine'
+        download_file_from_s3(model_url, output_path)
         # self.model = YOLO(output_path)
         self.model = YOLO(model_path)
         try:
-            self.video_model = YOLO("ml_model/weights/v9c_res.engine")
+            self.video_model = YOLO(output_path)
         except Exception as e:
             logger.warning(f"Ошибка загрузки модели: {e}")
             self.model.export(
