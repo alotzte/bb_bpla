@@ -2,6 +2,6 @@
 
 namespace BPLADetector.Application.Handlers.Results.GetProcessedFiles;
 
-public sealed class GetProcessedFilesPagedResponse : ItemList<ProcessedFileItemDto>
+public sealed class GetFilesPagedResponse : ItemList<ProcessedFileItemDto>
 {
 }

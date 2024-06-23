@@ -1,4 +1,5 @@
 ﻿using BPLADetector.Application.Handlers.File.GetProcessedFile;
+using BPLADetector.Application.Handlers.Results.GetProcessedFiles;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ public class FilesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(GetFilesPagedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<GetProcessedFileResponse>> GetProcessedFile(
         Guid id,
         CancellationToken cancellationToken = default)

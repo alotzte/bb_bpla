@@ -36,7 +36,7 @@ public class DomainRepository : IDomainRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<GetProcessedFilesPagedResponse> GetProcessedFiles(
+    public async Task<GetFilesPagedResponse> GetProcessedFiles(
         int limit,
         int offset,
         CancellationToken cancellationToken = default)
@@ -63,7 +63,7 @@ public class DomainRepository : IDomainRepository
             })
             .ToListAsync(cancellationToken);
 
-        return new GetProcessedFilesPagedResponse { Items = items, TotalCount = totalCount };
+        return new GetFilesPagedResponse { Items = items, TotalCount = totalCount };
     }
 
     public Task<GetProcessedFileResponse?> GetProcessedFileByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default)

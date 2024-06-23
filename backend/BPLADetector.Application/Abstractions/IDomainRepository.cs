@@ -14,7 +14,7 @@ public interface IDomainRepository
         IEnumerable<Guid> correlationIds,
         CancellationToken cancellationToken = default);
 
-    Task<GetProcessedFilesPagedResponse> GetProcessedFiles(
+    Task<GetFilesPagedResponse> GetProcessedFiles(
         int limit,
         int offset,
         CancellationToken cancellationToken = default);
