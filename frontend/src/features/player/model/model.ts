@@ -3,11 +3,11 @@ import { createEvent, createStore, sample } from 'effector';
 export const fileModalOpened = createEvent();
 export const fileModalClosed = createEvent();
 
-export const setSelectedId = createEvent<number>();
+export const setSelectedId = createEvent<string>();
 export const resetSelectedId = createEvent();
 
 export const $isOpen = createStore<boolean>(false);
-export const $selectedId = createStore<number | null>(null);
+export const $selectedId = createStore<string | null>(null);
 
 $selectedId.reset(resetSelectedId);
 

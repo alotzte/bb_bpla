@@ -68,7 +68,7 @@ const columns: ColumnsType<FilesTable> = [
     title: 'Статус',
     render: (_, record) => (
       <Flex justify="center">
-        <Text type={record.status === 'processed' ? 'danger' : 'success'}>
+        <Text type={record.status === 'inprogress' ? 'danger' : 'success'}>
           {getStatus[record.status]}
         </Text>
       </Flex>
@@ -97,8 +97,8 @@ export const FileTablePage = () => {
   const [type, setType] = useState<api.FileType>('image');
   const [dropdownState, setDropdownState] = useState<boolean>(false);
 
-  const openFile = ({ id }: Pick<FilesTable, 'id'>) => {
-    setSelectedId(id);
+  const openFile = ({ correlationId }: Pick<FilesTable, 'correlationId'>) => {
+    setSelectedId(correlationId);
     fileModalOpened();
   };
 
