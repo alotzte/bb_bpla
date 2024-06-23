@@ -10,15 +10,15 @@ export interface FilesGetResponse {
   status: FileStatus;
   type: FileType;
   txt?: string;
-archive?: string;
   uploadDateTime?: string;
   processedTime?: number;
 }
 
 export interface FileInfoGetResponse {
   marks: number[];
-  link: string;
+  link?: string;
   type: FileType;
+  archiveLink?: string;
 }
 
 export const files = {
