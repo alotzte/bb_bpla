@@ -2,6 +2,6 @@
 
 public enum UploadStatus
 {
-    Processed,
+    InProgress,
     Ready
 }

@@ -14,6 +14,6 @@ public class GetProcessedFileHandler : IRequestHandler<GetProcessedFileRequest, 
 
     public Task<GetProcessedFileResponse?> Handle(GetProcessedFileRequest request, CancellationToken cancellationToken)
     {
-        return _domainRepository.GetProcessedFileById(request.Id, cancellationToken);
+        return _domainRepository.GetProcessedFileByCorrelationId(request.Id, cancellationToken);
     }
 }

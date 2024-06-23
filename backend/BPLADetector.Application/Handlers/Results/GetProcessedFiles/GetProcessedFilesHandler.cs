@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BPLADetector.Application.Handlers.Results.GetProcessedFiles;
 
-public class GetProcessedFilesHandler : IRequestHandler<GetProcessedFilesRequest, GetProcessedFilesResponse>
+public class GetProcessedFilesHandler : IRequestHandler<GetProcessedFilesRequest, GetProcessedFilesPagedResponse>
 {
     private readonly IDomainRepository _repository;
 
@@ -12,7 +12,7 @@ public class GetProcessedFilesHandler : IRequestHandler<GetProcessedFilesRequest
         _repository = repository;
     }
 
-    public Task<GetProcessedFilesResponse> Handle(GetProcessedFilesRequest request, CancellationToken cancellationToken)
+    public Task<GetProcessedFilesPagedResponse> Handle(GetProcessedFilesRequest request, CancellationToken cancellationToken)
     {
         return _repository.GetProcessedFiles(request.Limit, request.Offset, cancellationToken);
     }

@@ -17,9 +17,9 @@ public class FilesController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet("{id:long}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetProcessedFileResponse>> GetProcessedFile(
-        long id,
+        Guid id,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Получен запрос на получение обработанного файла с id {id}", id);

@@ -36,43 +36,42 @@ public class DomainRepository : IDomainRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<GetProcessedFilesResponse> GetProcessedFiles(
+    public async Task<GetProcessedFilesPagedResponse> GetProcessedFiles(
         int limit,
         int offset,
         CancellationToken cancellationToken = default)
     {
-        var query = _context.ProcessedFiles
+        var query = _context.UploadedFiles
             .AsNoTracking();
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
-            .OrderBy(procesedFile => procesedFile.Id)
+            .OrderBy(uploadedFile => uploadedFile.Id)
             .Skip(offset)
             .Take(limit)
-            .Select(processedFile => new ProcessedFileItemDto
+            .Select(uploadedFile => new ProcessedFileItemDto
             {
-                Id = processedFile.Id,
-                UploadDateTime = processedFile.UploadedFile != null ? processedFile.UploadedFile.UploadDatetime : null,
-                ProcessedTime = processedFile.ProcessedMilliseconds,
-                Status = processedFile.UploadedFile != null
-                    ? processedFile.UploadedFile.Status.ToString().ToLower()
-                    : null,
-                Type = processedFile.Type.ToString().ToLower(),
-                Title = processedFile.Filename,
-                Txt = processedFile.TxtUrl,
+                Id = uploadedFile.Id,
+                UploadDateTime = uploadedFile.UploadDatetime,
+                ProcessedTime = uploadedFile.ProcessedFile == null ? null: uploadedFile.ProcessedFile.ProcessedMilliseconds,
+                Status = uploadedFile.Status.ToString().ToLower(),
+                Type = uploadedFile.Type.ToString().ToLower(),
+                Title = uploadedFile.Filename,
+                Txt = uploadedFile.ProcessedFile == null ? null : uploadedFile.ProcessedFile.TxtUrl,
+                CorrelationId = uploadedFile.CorrelationId
             })
             .ToListAsync(cancellationToken);
 
-        return new GetProcessedFilesResponse { Items = items, TotalCount = totalCount };
+        return new GetProcessedFilesPagedResponse { Items = items, TotalCount = totalCount };
     }
 
-    public Task<GetProcessedFileResponse?> GetProcessedFileById(long id, CancellationToken cancellationToken = default)
+    public Task<GetProcessedFileResponse?> GetProcessedFileByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default)
     {
         return _context.ProcessedFiles
             .AsNoTracking()
-            .Where(file => file.Id == id)
-            .Select(file => GetProcessedFileResponse.FromProcessedFile(file))
+            .Where(processedFile => processedFile.CorrelationId == correlationId)
+            .Select(processedFile => GetProcessedFileResponse.FromProcessedFile(processedFile))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
