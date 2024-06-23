@@ -21,6 +21,7 @@ public class UploadController : ControllerBase
     }
 
     [HttpPost]
+    [RequestSizeLimit(1_100_000_000)]
     public async Task<ActionResult> UploadFiles(IFormFileCollection files, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"Files: {string.Join(",", files.Select(file => file.FileName))}");
