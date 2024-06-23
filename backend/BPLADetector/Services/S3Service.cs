@@ -69,9 +69,9 @@ public abstract class S3Service : IDisposable
     }
 
     protected async Task MultiPartUploadAsync(
+        Stream fileStream,
         string key,
         string bucketName,
-        Stream fileStream,
         CancellationToken cancellationToken = default)
     {
         var fileTransferUtility = new TransferUtility(_client);

@@ -15,8 +15,7 @@ public class DigitalOceanS3 : S3Service, IS3Service
 
     public DigitalOceanS3(
         IOptions<DigitalOceanOptions> options,
-        ILogger<DigitalOceanS3> logger,
-        IDomainRepository domainRepository) : base(
+        ILogger<DigitalOceanS3> logger) : base(
         logger,
         options.Value.AccessKey,
         options.Value.SecretKey,
@@ -38,18 +37,29 @@ public class DigitalOceanS3 : S3Service, IS3Service
         {
             var key = GetKey(utcNow, file.Filename);
 
-            await PutObjectAsync(
-                file.Stream,
-                key,
-                DigitalOceanConsts.DigitalOceanBucketName,
-                cancellationToken);
+            if (file.Length > 90_000_000)
+            {
+                await MultiPartUploadAsync(
+                    file.Stream, 
+                    key, 
+                    DigitalOceanConsts.DigitalOceanBucketName,
+                    cancellationToken);
+            }
+            else
+            {
+                await PutObjectAsync(
+                    file.Stream,
+                    key,
+                    DigitalOceanConsts.DigitalOceanBucketName,
+                    cancellationToken);
+            }
 
-            var presignedUrl = GetFileUri(key).ToString(); 
+            var presignedUrl = GetFileUri(key).ToString();
             uploadedFiles.Add(new UploadedFileDto
             {
                 UploadDatetime = utcNow,
                 Filename = file.Filename,
-                OriginalPresignedUrl = presignedUrl, 
+                OriginalPresignedUrl = presignedUrl,
                 Uri = presignedUrl,
                 Status = UploadStatus.InProgress,
                 Type = FileTypeHelper.GetFileType(file.Filename)
