@@ -1,4 +1,5 @@
-﻿using BPLADetector.Application.Handlers.Upload.UploadFile;
+﻿using BPLADetector.Application.DTO;
+using BPLADetector.Application.Handlers.Upload.UploadFile;
 using BPLADetector.Application.Handlers.Upload.UploadProcessedArchive;
 using BPLADetector.Application.Handlers.Upload.UploadProcessedVideo;
 using BPLADetector.Infrastructure.Extensions;
@@ -29,6 +30,20 @@ public class UploadController : ControllerBase
         await _mediator.Send(
             new UploadFileRequest(
                 files.Select(file => file.ToUploadFileItem()).ToList()),
+            cancellationToken);
+
+        return Ok();
+    }
+
+    [HttpPost("single")]
+    [RequestSizeLimit(1_100_000_000)]
+    public async Task<ActionResult> UploadFile(IFormFile file, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation($"Files: {string.Join(",", file.FileName)}");
+
+        await _mediator.Send(
+            new UploadFileRequest(
+                new List<UploadFileItem> { file.ToUploadFileItem() }),
             cancellationToken);
 
         return Ok();
