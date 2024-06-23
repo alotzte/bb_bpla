@@ -1,5 +1,4 @@
-﻿using BPLADetector.Application.DTO;
-using BPLADetector.Application.Handlers.Results.GetProcessedFiles;
+﻿using BPLADetector.Application.Handlers.Results.GetProcessedFiles;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +18,8 @@ public class ResultsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ItemList<ProcessedFileItemDto>>> GetProcessedFiles(
+    [ProducesResponseType(typeof(GetFilesPagedResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<GetFilesPagedResponse>> GetProcessedFiles(
         [FromQuery] int limit,
         [FromQuery] int offset,
         CancellationToken cancellationToken)
