@@ -1,4 +1,5 @@
 ﻿using BPLADetector.Application.DTO;
+using UnidecodeSharpFork;
 
 namespace BPLADetector.Infrastructure.Extensions;
 
@@ -8,7 +9,7 @@ public static class ModelExtensions
     {
         return new UploadFileItem
         {
-            Filename = formFile.FileName,
+            Filename = formFile.FileName.Unidecode(),
             Length = formFile.Length,
             Stream = formFile.OpenReadStream()
         };

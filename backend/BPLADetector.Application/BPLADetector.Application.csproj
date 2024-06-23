@@ -13,6 +13,7 @@
     <ItemGroup>
       <PackageReference Include="MediatR" Version="12.3.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+      <PackageReference Include="UnidecodeSharpFork" Version="1.0.0" />
     </ItemGroup>
 
 </Project>
