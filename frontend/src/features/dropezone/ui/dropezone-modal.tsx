@@ -1,6 +1,12 @@
 import { Modal } from 'antd';
 import { useUnit } from 'effector-react';
-import { $isOpen, dropezoneModalClosed, loadFiles } from '../model';
+import {
+  $isOpen,
+  $isUploading,
+  dropezoneModalClosed,
+  loadFiles,
+  loadSingleFile,
+} from '../model';
 import { DropeZone } from '@/features/dropezone';
 import { api } from '@/shared/services/api';
 import { useState } from 'react';
@@ -10,7 +16,7 @@ interface DropezoneModalProps {
 }
 
 export const DropezoneModal = ({ type }: DropezoneModalProps) => {
-  const [isOpen] = useUnit([$isOpen]);
+  const [isOpen, isLoading] = useUnit([$isOpen, $isUploading]);
   const [loadedFiles, setFiles] = useState<File[]>([]);
 
   const onDrop = (files: File[]) => {
@@ -24,9 +30,12 @@ export const DropezoneModal = ({ type }: DropezoneModalProps) => {
     <Modal
       open={isOpen}
       onOk={() => {
-        loadFiles(loadedFiles);
+        if (type === 'image') {
+          loadFiles(loadedFiles);
+        } else {
+          loadSingleFile(loadedFiles[0]);
+        }
         setFiles([]);
-        dropezoneModalClosed();
       }}
       onCancel={() => {
         dropezoneModalClosed();
@@ -38,6 +47,7 @@ export const DropezoneModal = ({ type }: DropezoneModalProps) => {
         onDrop={onDrop}
         type={type}
         fileNames={loadedFiles.map((file) => file.name)}
+        isLoading={isLoading}
       />
     </Modal>
   );

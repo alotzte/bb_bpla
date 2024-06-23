@@ -1,11 +1,15 @@
 import { api } from '@/shared/services/api';
-import { Flex } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { Flex, Spin, Typography } from 'antd';
 import Dropzone from 'react-dropzone';
+
+const { Title } = Typography;
 
 interface DropeZoneProps {
   onDrop: (files: File[]) => void;
   type: api.FileType;
   fileNames: string[];
+  isLoading: boolean;
 }
 
 const imageAccept = {
@@ -38,7 +42,12 @@ const typesAccept: Record<api.FileType, { [key: string]: string[] }> = {
   video: videoAccept,
 };
 
-export const DropeZone = ({ onDrop, type, fileNames }: DropeZoneProps) => {
+export const DropeZone = ({
+  onDrop,
+  type,
+  fileNames,
+  isLoading,
+}: DropeZoneProps) => {
   return (
     <Dropzone
       onDrop={(files) => onDrop(files)}
@@ -49,7 +58,12 @@ export const DropeZone = ({ onDrop, type, fileNames }: DropeZoneProps) => {
         <div {...getRootProps()}>
           <input {...getInputProps()} />
           <div style={style.drope}>
-            {fileNames.length ? (
+            {isLoading ? (
+              <Flex vertical gap="small">
+                <Title level={3}>Загружаем файлы</Title>
+                <Spin size="large" indicator={<LoadingOutlined spin />} />
+              </Flex>
+            ) : fileNames.length ? (
               <Flex vertical>
                 {fileNames.map((filename, index) => (
                   <div key={index}>{filename}</div>

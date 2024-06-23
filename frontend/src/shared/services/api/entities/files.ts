@@ -30,7 +30,7 @@ export const files = {
       })
       .then((response) => response.data);
   },
-  sendFile: async (uploadedFiles: File[]) => {
+  sendFiles: async (uploadedFiles: File[]) => {
     const formData = new FormData();
 
     for (let i = 0; i < uploadedFiles.length; i++) {
@@ -45,6 +45,21 @@ export const files = {
 
     return await httpClient
       .post('api/v1/upload', formData, config)
+      .then((response) => response.data);
+  },
+  sendSingleFile: async (uploadedFile: File) => {
+    const formData = new FormData();
+
+    formData.append('file', uploadedFile);
+
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    };
+
+    return await httpClient
+      .post('api/v1/upload/single', formData, config)
       .then((response) => response.data);
   },
   getFileInfo: async (id: string) => {
