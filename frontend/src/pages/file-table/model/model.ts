@@ -7,7 +7,7 @@ export const pageUnmounted = reset({
 });
 
 export const getStatus: Record<api.FileStatus, string> = {
-  processed: 'Обрабатывается',
+  inprogress: 'Обрабатывается',
   ready: 'Обработано',
 };
 

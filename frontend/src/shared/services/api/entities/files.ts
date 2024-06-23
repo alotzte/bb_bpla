@@ -1,7 +1,7 @@
 import type { PaginationParams, PaginationResponse } from '@/shared/lib';
 import { httpClient } from '../http-client';
 
-export type FileStatus = 'processed' | 'ready';
+export type FileStatus = 'inprogress' | 'ready';
 export type FileType = 'video' | 'image' | 'archive';
 
 export interface FilesGetResponse {
@@ -12,6 +12,7 @@ export interface FilesGetResponse {
   txt?: string;
   uploadDateTime?: string;
   processedTime?: number;
+  correlationId: string;
 }
 
 export interface FileInfoGetResponse {
@@ -46,7 +47,7 @@ export const files = {
       .post('api/v1/upload', formData, config)
       .then((response) => response.data);
   },
-  getFileInfo: async (id: number) => {
+  getFileInfo: async (id: string) => {
     return await httpClient
       .get<FileInfoGetResponse>(`api/v1/files/${id}`)
       .then((response) => response.data);
