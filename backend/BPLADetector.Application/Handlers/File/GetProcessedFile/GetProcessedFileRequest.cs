@@ -2,4 +2,4 @@
 
 namespace BPLADetector.Application.Handlers.File.GetProcessedFile;
 
-public sealed record GetProcessedFileRequest(long Id) : IRequest<GetProcessedFileResponse?>;
+public sealed record GetProcessedFileRequest(Guid Id) : IRequest<GetProcessedFileResponse?>;

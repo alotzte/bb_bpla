@@ -14,12 +14,12 @@ public interface IDomainRepository
         IEnumerable<Guid> correlationIds,
         CancellationToken cancellationToken = default);
 
-    Task<GetProcessedFilesResponse> GetProcessedFiles(
+    Task<GetFilesPagedResponse> GetProcessedFiles(
         int limit,
         int offset,
         CancellationToken cancellationToken = default);
 
-    Task<GetProcessedFileResponse?> GetProcessedFileById(long id, CancellationToken cancellationToken = default);
+    Task<GetProcessedFileResponse?> GetProcessedFileByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default);
     Task AddAsync<T>(T item, CancellationToken cancellationToken = default);
     void AddRange<T>(IEnumerable<T> items) where T : class, IDomainModel;
     void Update<T>(T item) where T : class, IDomainModel;

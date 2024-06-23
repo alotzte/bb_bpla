@@ -51,7 +51,7 @@ public class DigitalOceanS3 : S3Service, IS3Service
                 Filename = file.Filename,
                 OriginalPresignedUrl = presignedUrl, 
                 Uri = presignedUrl,
-                Status = UploadStatus.Processed,
+                Status = UploadStatus.InProgress,
                 Type = FileTypeHelper.GetFileType(file.Filename)
             });
 

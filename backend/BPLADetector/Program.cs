@@ -6,6 +6,7 @@ using BPLADetector.Infrastructure.Database;
 using BPLADetector.Infrastructure.Http;
 using BPLADetector.Infrastructure.Middleware;
 using BPLADetector.Services;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -28,6 +29,12 @@ builder.Services.AddDbContext<BplaContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.Configure<FormOptions>(formOptions =>
+{
+    formOptions.ValueLengthLimit = int.MaxValue;
+    formOptions.MultipartBodyLengthLimit = long.MaxValue;
+});
+
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<DigitalOceanOptions>(builder.Configuration.GetSection(DigitalOceanOptions.Section));
