@@ -34,6 +34,11 @@ const videoAccept = {
 
 const archiveAccept = {
   'application/zip': [],
+  'application/x-bzip': [],
+  'application/x-bzip2': [],
+  'application/gzip': [],
+  'application/x-zip-compressed': [],
+  'application/x-7z-compressed': [],
 };
 
 const typesAccept: Record<api.FileType, { [key: string]: string[] }> = {
