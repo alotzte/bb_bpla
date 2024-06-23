@@ -12,8 +12,16 @@ public class GetProcessedFilesHandler : IRequestHandler<GetProcessedFilesRequest
         _repository = repository;
     }
 
-    public Task<GetFilesPagedResponse> Handle(GetProcessedFilesRequest request, CancellationToken cancellationToken)
+    public async Task<GetFilesPagedResponse> Handle(GetProcessedFilesRequest request,
+        CancellationToken cancellationToken)
     {
-        return _repository.GetProcessedFiles(request.Limit, request.Offset, cancellationToken);
+        var files = await _repository.GetProcessedFiles(request.Limit, request.Offset, cancellationToken);
+
+        foreach (var file in files.Items)
+        {
+            file.UploadDateTime = file.UploadDateTime?.ToLocalTime();
+        }
+
+        return files;
     }
 }

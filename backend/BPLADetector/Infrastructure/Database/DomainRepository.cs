@@ -53,7 +53,7 @@ public class DomainRepository : IDomainRepository
             .Select(uploadedFile => new ProcessedFileItemDto
             {
                 Id = uploadedFile.Id,
-                UploadDateTime = uploadedFile.UploadDatetime.ToLocalTime(),
+                UploadDateTime = uploadedFile.UploadDatetime,
                 ProcessedTime = uploadedFile.ProcessedFile == null ? null: uploadedFile.ProcessedFile.ProcessedMilliseconds,
                 Status = uploadedFile.Status.ToString().ToLower(),
                 Type = uploadedFile.Type.ToString().ToLower(),
