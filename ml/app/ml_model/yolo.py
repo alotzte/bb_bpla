@@ -30,10 +30,24 @@ class YoloModel:
         # download_file_from_s3(model_url, output_path)
         # self.model = YOLO(output_path)
         self.model = YOLO(model_path)
+        try:
+            self.video_model = YOLO("ml_model/weights/v9c_res.engine")
+        except Exception as e:
+            logger.warning(f"Ошибка загрузки модели: {e}")
+            self.model.export(
+                format="engine",
+                dynamic=True,
+                batch=8,
+                # half=True,
+                workspace=4,
+                # simplify=True,
+            )
+            self.video_model = YOLO("ml_model/weights/v9c_res.engine")
+            logger.warning('convert to engine success')
 
     def predict_folder(self, path):
 
-        total = 0
+        start_time = time.time()
         for res in self.model.predict(
             path,
             conf=0.25,
@@ -55,11 +69,9 @@ class YoloModel:
 
             res.save(link)
             self._save_txt(txt_path, res, is_video=False)
-            for k, v in res.speed.items():
-                total += v
-        end_time = total
+        end_time = time.time() - start_time
 
-        return img, txt, int(end_time)
+        return img, txt, int(end_time * 1000) 
 
     def predict_photo(self, img, filename):
         width, height = img.size
@@ -176,12 +188,15 @@ class YoloModel:
         timestamps = []
         missed_frames = 0
 
-        fourcc = cv2.VideoWriter_fourcc(*'VP80')
-        saved_video_path = f'/app/ml_model/{object_name}.webm'
-        out = cv2.VideoWriter(saved_video_path, fourcc, fps, (width, height))
+        # fourcc = cv2.VideoWriter_fourcc(*'VP80')
+        # saved_video_path = f'/app/ml_model/{object_name}.webm'
+        saved_video_path = f'/app/runs/detect/predict/{object_name}.webm'
+        # saved_video_path = f'/app/runs/detect/predict/test.mp4'
+        # out = cv2.VideoWriter(saved_video_path, fourcc, fps, (width, height))
 
         total = 0
-        for frame_number, r in enumerate(self.model.predict(
+        for frame_number, r in enumerate(self.video_model.predict(
+        # for frame_number, r in enumerate(self.model.predict(
             video_url,
             conf=0.25,
             stream=True,
@@ -189,10 +204,11 @@ class YoloModel:
             iou=0.1,
             agnostic_nms=True,
             device=0,
+            save=True
         )):
-            frame = r.orig_img 
+            # frame = r.orig_img
             if len(r.boxes.xywh) > 0:
-                frame = self._draw_boxes(frame, r.boxes.xyxy, r.boxes.cls)
+                # frame = self._draw_boxes(frame, r.boxes.xyxy, r.boxes.cls)
                 if not last_frame_success:
                     timestamps.append((frame_number + 1) / frames)
                 last_frame_success = True
@@ -204,12 +220,14 @@ class YoloModel:
                         last_frame_success = False
                 else:
                     missed_frames = 0
-            out.write(frame)
+
             for k, v in r.speed.items():
                 total += v
-        out.release()
+        #     out.write(frame)
+        # out.release()
 
         end_time = total
+        # end_time = time.time() - start_time
 
         logger.warning(f'Start uploading {saved_video_path}')
         upd_video_url = upload_file_to_s3(
@@ -222,7 +240,8 @@ class YoloModel:
             logger.warning(f'{e}\n/app/runs/detect not found')
         
         try:
-            os.remove(saved_video_path)
+            # os.remove(saved_video_path)
+            # logger.warning(os.path.join('app', object_fullname))
             os.remove(object_fullname)
         except Exception as e:
             logger.warning(f'{e}\n{object_fullname} not found')
@@ -306,6 +325,7 @@ class YoloModel:
                     "link": link,
                     "marks": timestamps,
                     "processed_milliseconds": int(end_time)
+                    # "processed_milliseconds": int(end_time * 1000)
                 }
             logger.warning(data)
 
