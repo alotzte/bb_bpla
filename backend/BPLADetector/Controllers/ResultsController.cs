@@ -24,7 +24,7 @@ public class ResultsController : ControllerBase
         [FromQuery] int offset,
         CancellationToken cancellationToken)
     {
-        _logger.LogDebug(
+        _logger.LogInformation(
             "Получен запрос на получение обработанных файлов. Limit = {limit}, Offset = {offset}",
             limit,
             offset);

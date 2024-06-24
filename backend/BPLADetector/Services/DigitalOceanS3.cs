@@ -15,9 +15,7 @@ public class DigitalOceanS3 : S3Service, IS3Service
 
     public DigitalOceanS3(
         IOptions<DigitalOceanOptions> options,
-        ILogger<DigitalOceanS3> logger) : base(
-        logger,
-        options.Value.AccessKey,
+        ILogger<DigitalOceanS3> logger) : base(options.Value.AccessKey,
         options.Value.SecretKey,
         options.Value.Endpoint)
     {
@@ -65,7 +63,7 @@ public class DigitalOceanS3 : S3Service, IS3Service
                 Type = FileTypeHelper.GetFileType(file.Filename)
             });
 
-            _logger.LogInformation("Uri: {key}", GetFileUri(key));
+            _logger.LogInformation($"Presigned uri for file {key}: {presignedUrl}");
         }
 
         return uploadedFiles;

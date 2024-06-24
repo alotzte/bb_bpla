@@ -14,7 +14,7 @@ using Serilog.Events;
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .MinimumLevel.Verbose()
-    .WriteTo.Console(LogEventLevel.Debug)
+    .WriteTo.Console(LogEventLevel.Information)
     .WriteTo.File("log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 

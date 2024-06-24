@@ -85,16 +85,6 @@ public class DomainRepository : IDomainRepository
         _context.Set<T>().AddRange(items);
     }
 
-    public void Update<T>(T item) where T : class, IDomainModel
-    {
-        _context.Set<T>().Update(item);
-    }
-
-    public void UpdateRange<T>(IEnumerable<T> items) where T : class, IDomainModel
-    {
-        _context.Set<T>().UpdateRange(items);
-    }
-
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _context.SaveChangesAsync(cancellationToken);

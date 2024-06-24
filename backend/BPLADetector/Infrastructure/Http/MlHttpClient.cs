@@ -31,7 +31,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
             Encoding.UTF8,
             MediaTypeNames.Application.Json);
 
-        _logger.LogInformation($"ML request body: {JsonSerializer.Serialize(json)}");
+        _logger.LogInformation($"Photos ML request body: {JsonSerializer.Serialize(json)}");
 
         using var responseMessage = await _httpClient.PostAsync("/ml/predict_photos", json, cancellationToken);
 
@@ -42,7 +42,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
         catch (Exception e)
         {
             var responseBody = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError(e, "Response body:\n {responseBody} \n", responseBody);
+            _logger.LogError(e, "Photos ML response body:\n {responseBody} \n", responseBody);
             throw;
         }
 
@@ -67,7 +67,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
 
         json.Headers.Add("CorrelationId", correlationId.ToString());
 
-        _logger.LogInformation($"ML request body: {json}");
+        _logger.LogInformation($"Video ML request body: {json}");
 
         using var responseMessage = await _httpClient.PostAsync("/ml/predict_video", json, cancellationToken);
 
@@ -78,7 +78,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
         catch (Exception e)
         {
             var responseBody = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError(e, "Response body:\n {responseBody} \n", responseBody);
+            _logger.LogError(e, "Video ML response body:\n {responseBody} \n", responseBody);
             throw;
         }
     }
@@ -107,7 +107,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
 
         json.Headers.Add("CorrelationId", correlationId.ToString());
 
-        _logger.LogInformation($"ML request body: {json}");
+        _logger.LogInformation($"Archive ML request body: {json}");
 
         using var responseMessage = await _httpClient.PostAsync("/ml/predict_photos_archive", json, cancellationToken);
 
@@ -118,7 +118,7 @@ public sealed class MlHttpClient : IMlHttpClient, IDisposable
         catch (Exception e)
         {
             var responseBody = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError(e, "Response body:\n {responseBody} \n", responseBody);
+            _logger.LogError(e, "Archive ML response body:\n {responseBody} \n", responseBody);
             throw;
         }
     }
